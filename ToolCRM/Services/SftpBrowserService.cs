@@ -1,6 +1,7 @@
 using Renci.SshNet;
 using ToolCRM.Configuration;
 using ToolCRM.Models;
+using Microsoft.Extensions.Options;
 
 namespace ToolCRM.Services
 {
@@ -8,9 +9,9 @@ namespace ToolCRM.Services
     {
         private readonly AppSettings _appSettings;
 
-        public SftpBrowserService(AppSettings appSettings)
+        public SftpBrowserService(IOptions<AppSettings> appSettings)
         {
-            _appSettings = appSettings;
+            _appSettings = appSettings.Value;
         }
 
         public async Task<SftpDirectoryModel> BrowseDirectoryAsync(string path = "/")
