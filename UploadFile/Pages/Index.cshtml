@@ -1,0 +1,20 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+@Html.AntiForgeryToken()
+<form method="post" enctype="multipart/form-data" method="post" asp-page="index" asp-page-handler="UploadInfomation">
+    <div>
+        <label for="formFileLg" class="form-label">Ngày báo cáo </label>
+        <input class="form-control form-control" name="DateRequest" type="date">
+    </div>
+    <div>
+        <label for="formFileLg" class="form-label">File dữ liệu báo cáo </label>
+        <input class="form-control form-control-lg" name="FileInfo" type="file">
+    </div>
+    <div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </div>
+</form>
+

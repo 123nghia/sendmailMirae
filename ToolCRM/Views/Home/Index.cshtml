@@ -1,0 +1,53 @@
+﻿@model ToolCRM.Models.InputRequest
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+
+<div style="text-align:center; display:none" id="showLoadding">
+    <h2>Đang xử lý, vui lòng chờ kết quả</h2>
+    <div class="spinner-grow text-primary" role="status">
+    </div>
+    <div class="spinner-grow text-secondary" role="status">
+    </div>
+    <div class="spinner-grow text-success" role="status">
+    </div>
+    <div class="spinner-grow text-danger" role="status">
+    </div>
+    <div class="spinner-grow text-warning" role="status">
+    </div>
+    <div class="spinner-grow text-info" role="status">
+    </div>
+    <div class="spinner-grow text-light" role="status">
+    </div>
+    <div class="spinner-grow text-dark" role="status">
+    </div>
+</div>
+<div class="container" id="contentdiv">
+    <h2>Hỗ trợ làm báo cáo </h2>
+    <form method="post" action="/" id="formSubmitReport" enctype="multipart/form-data">
+  
+        <div class="row">
+            <div class="mb-3">
+                <label for="exampleInputEmail1" class="form-label">Ngày làm báo cáo</label>
+                <input type="date" class="form-control" name="DayReport" id="dayReportTime" aria-describedby="emailHelp">
+            </div>
+            <div class="mb-3">
+                <label for="formFile" class="form-label">File nhân viên</label>
+                <input class="form-control" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" name="FileTC" id="fileFileTC">
+                <div class="form-text">Chọn File excel</div> <a href="/Tc.xlsx" download="dataTCTemplate.xlsx">File mẫu </a>
+            </div>
+            <div class="mb-3">
+                <label for="formFile" class="form-label">File báo cáo hàng ngày (CDR)</label>
+                <input class="form-control" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"  name="FileReport" id="fileFileReport">
+                <div class="form-text">Chọn File excel</div><a href="/call_report_20250211.xlsx" download="dataCDR.xlsx">File mẫu </a>
+            </div>
+            <button type="button" onclick="submitForm()" class="btn btn-primary">Đồng bộ báo cáo</button>
+        </div>
+    </form>
+    <br />
+    <br />
+    
+    </div>
+</div>
