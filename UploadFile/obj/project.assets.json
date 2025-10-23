@@ -1,32 +1,16 @@
 {
   "version": 3,
   "targets": {
-    "net6.0": {
-      "BouncyCastle.Cryptography/2.4.0": {
+    "net7.0": {
+      "SSH.NET/2024.1.0": {
         "type": "package",
         "compile": {
-          "lib/net6.0/BouncyCastle.Cryptography.dll": {
+          "lib/net7.0/Renci.SshNet.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net6.0/BouncyCastle.Cryptography.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "SSH.NET/2024.2.0": {
-        "type": "package",
-        "dependencies": {
-          "BouncyCastle.Cryptography": "2.4.0"
-        },
-        "compile": {
-          "lib/net6.0/Renci.SshNet.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net6.0/Renci.SshNet.dll": {
+          "lib/net7.0/Renci.SshNet.dll": {
             "related": ".xml"
           }
         }
@@ -34,30 +18,10 @@
     }
   },
   "libraries": {
-    "BouncyCastle.Cryptography/2.4.0": {
-      "sha512": "SwXsAV3sMvAU/Nn31pbjhWurYSjJ+/giI/0n6tCrYoupEK34iIHCuk3STAd9fx8yudM85KkLSVdn951vTng/vQ==",
+    "SSH.NET/2024.1.0": {
+      "sha512": "pyOea9czgC+OwMoetuWtMuwRebOyskKkqTZtODgyEZ5K6JwV+Hh/GFiyYubl93YnEvmvNZeuyWyUDsb3LvBDYA==",
       "type": "package",
-      "path": "bouncycastle.cryptography/2.4.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "LICENSE.md",
-        "README.md",
-        "bouncycastle.cryptography.2.4.0.nupkg.sha512",
-        "bouncycastle.cryptography.nuspec",
-        "lib/net461/BouncyCastle.Cryptography.dll",
-        "lib/net461/BouncyCastle.Cryptography.xml",
-        "lib/net6.0/BouncyCastle.Cryptography.dll",
-        "lib/net6.0/BouncyCastle.Cryptography.xml",
-        "lib/netstandard2.0/BouncyCastle.Cryptography.dll",
-        "lib/netstandard2.0/BouncyCastle.Cryptography.xml",
-        "packageIcon.png"
-      ]
-    },
-    "SSH.NET/2024.2.0": {
-      "sha512": "9r+4UF2P51lTztpd+H7SJywk7WgmlWB//Cm2o96c6uGVZU5r58ys2/cD9pCgTk0zCdSkfflWL1WtqQ9I4IVO9Q==",
-      "type": "package",
-      "path": "ssh.net/2024.2.0",
+      "path": "ssh.net/2024.1.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -75,42 +39,40 @@
         "lib/netstandard2.0/Renci.SshNet.xml",
         "lib/netstandard2.1/Renci.SshNet.dll",
         "lib/netstandard2.1/Renci.SshNet.xml",
-        "ssh.net.2024.2.0.nupkg.sha512",
+        "ssh.net.2024.1.0.nupkg.sha512",
         "ssh.net.nuspec"
       ]
     }
   },
   "projectFileDependencyGroups": {
-    "net6.0": [
-      "SSH.NET >= 2024.2.0"
+    "net7.0": [
+      "SSH.NET >= 2024.1.0"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Administrator\\.nuget\\packages\\": {}
+    "/home/truongnghia/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\sendmailMirae\\UploadFile\\UploadFile.csproj",
+      "projectUniqueName": "/home/truongnghia/Desktop/email/sendmailMirae/UploadFile/UploadFile.csproj",
       "projectName": "UploadFile",
-      "projectPath": "C:\\sendmailMirae\\UploadFile\\UploadFile.csproj",
-      "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "C:\\sendmailMirae\\UploadFile\\obj\\",
+      "projectPath": "/home/truongnghia/Desktop/email/sendmailMirae/UploadFile/UploadFile.csproj",
+      "packagesPath": "/home/truongnghia/.nuget/packages/",
+      "outputPath": "/home/truongnghia/Desktop/email/sendmailMirae/UploadFile/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "/home/truongnghia/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
-        "net6.0"
+        "net7.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "net6.0": {
-          "targetAlias": "net6.0",
+        "net7.0": {
+          "targetAlias": "net7.0",
           "projectReferences": {}
         }
       },
@@ -121,12 +83,12 @@
       }
     },
     "frameworks": {
-      "net6.0": {
-        "targetAlias": "net6.0",
+      "net7.0": {
+        "targetAlias": "net7.0",
         "dependencies": {
           "SSH.NET": {
             "target": "Package",
-            "version": "[2024.2.0, )"
+            "version": "[2024.1.0, )"
           }
         },
         "imports": [
@@ -148,7 +110,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.402\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/home/truongnghia/dotnet/sdk/7.0.410/RuntimeIdentifierGraph.json"
       }
     }
   }

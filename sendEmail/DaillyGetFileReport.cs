@@ -11,20 +11,18 @@ namespace sendEmail
         public DaillyGetFileReport()
         {
         }
-        public async Task CallWeb()
+        public Task CallWeb()
         {
-
+            return Task.CompletedTask;
         }
-        public async Task UploadFileToRemoteFolder()
+        public Task UploadFileToRemoteFolder()
         {
             var dateHandle = DateTime.Now.AddDays(0);
 
 
             var sufixFile = dateHandle.ToString("yyyyMMdd") + ".xlsx";
-            string localDirectory = "C:\\local\\";
             var localFileWorkingTime = "C:\\local\\workingTime";
             var localFileCallReport = "C:\\local\\callReport";
-            string remoteDirectory = "/uploads/PAYMENT";
             string remoteUPloadWorkingTime = "/uploads/WORKINGTIME/";
             string remoteUPloadCallReport = "/uploads/CAllREPORT/";
             var fileNameCallReport = "call_report_" + sufixFile;
@@ -74,6 +72,7 @@ namespace sendEmail
             {
                 File.Delete(fullPathCallReport);
             }
+            return Task.CompletedTask;
         }
 
 

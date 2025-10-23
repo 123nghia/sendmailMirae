@@ -15,7 +15,6 @@
             {
                 services.AddQuartz(q =>
                 {
-                    q.UseMicrosoftDependencyInjectionJobFactory();
                     var jobKey = new JobKey("DaillySendMailReport");
                     q.AddJob<DaillySendMailReport>(opts => opts.WithIdentity(jobKey));
                     q.AddTrigger(opts => opts
@@ -28,7 +27,6 @@
                 );
                 services.AddQuartz(q =>
                 {
-                    q.UseMicrosoftDependencyInjectionJobFactory();
                     var jobKey = new JobKey("DowloadFilePaymentReport");
                     q.AddJob<DowloadFilePaymentReport>(opts => opts.WithIdentity(jobKey));
                     q.AddTrigger(opts => opts

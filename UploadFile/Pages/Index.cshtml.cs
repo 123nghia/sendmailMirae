@@ -39,7 +39,7 @@ namespace UploadFile.Pages
             var filePath = Path.Combine(uploadDirecotroy, fileNameCallReport);
             using (var strem = System.IO.File.Create(filePath))
             {
-                fileInfo.CopyTo(strem);
+                fileInfo?.CopyTo(strem);
             }
 
         }

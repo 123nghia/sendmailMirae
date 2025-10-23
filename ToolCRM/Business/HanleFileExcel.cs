@@ -19,24 +19,24 @@ namespace ToolCRM.Business
            var file = new FileInfo(pathfile);
             using (ExcelPackage package = new ExcelPackage(file))
             {
-                ExcelWorksheet workSheet = package.Workbook.Worksheets.FirstOrDefault();
+                ExcelWorksheet? workSheet = package.Workbook.Worksheets.FirstOrDefault();
                 if (workSheet != null)
                 {
                     int totalRows = workSheet.Rows.Count();
                     for (int i = 2; i <= totalRows; i++)
                     {
                         var item = new DataReportCDRSource();
-                        item.UserName = workSheet.Cells[i, 1].Value?.ToString();
-                        item.TeamLead = workSheet.Cells[i, 2].Value?.ToString();
-                        item.Agreement = workSheet.Cells[i, 3].Value?.ToString();
-                        item.ActionCode = workSheet.Cells[i, 4].Value?.ToString();
-                        item.PromiseDate = workSheet.Cells[i, 5].Value?.ToString();
-                        item.PromiseAmt = workSheet.Cells[i, 6].Value?.ToString();
+                        item.UserName = workSheet.Cells[i, 1].Value?.ToString() ?? string.Empty;
+                        item.TeamLead = workSheet.Cells[i, 2].Value?.ToString() ?? string.Empty;
+                        item.Agreement = workSheet.Cells[i, 3].Value?.ToString() ?? string.Empty;
+                        item.ActionCode = workSheet.Cells[i, 4].Value?.ToString() ?? string.Empty;
+                        item.PromiseDate = workSheet.Cells[i, 5].Value?.ToString() ?? string.Empty;
+                        item.PromiseAmt = workSheet.Cells[i, 6].Value?.ToString() ?? string.Empty;
 
-                        item.Remark = workSheet.Cells[i, 7].Value?.ToString();
-                        item.CallDate = workSheet.Cells[i, 8].Value?.ToString();
-                        item.Time = Gettime(workSheet.Cells[i, 9].Value?.ToString());
-                        item.Contact_Person = workSheet.Cells[i, 10].Value?.ToString();
+                        item.Remark = workSheet.Cells[i, 7].Value?.ToString() ?? string.Empty;
+                        item.CallDate = workSheet.Cells[i, 8].Value?.ToString() ?? string.Empty;
+                        item.Time = Gettime(workSheet.Cells[i, 9].Value?.ToString() ?? string.Empty);
+                        item.Contact_Person = workSheet.Cells[i, 10].Value?.ToString() ?? string.Empty;
                         listData.Add(item);
                     }
                 }
@@ -51,7 +51,7 @@ namespace ToolCRM.Business
             using (ExcelPackage package = new ExcelPackage(pathInfo))
             {
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                ExcelWorksheet workSheet = package.Workbook.Worksheets.FirstOrDefault();
+                ExcelWorksheet? workSheet = package.Workbook.Worksheets.FirstOrDefault();
                 if (workSheet != null)
                 {
                     int totalColumn = workSheet.Columns.Count();
@@ -105,7 +105,7 @@ namespace ToolCRM.Business
 
                 return datetimeInput.TimeOfDay.ToString();
             }
-            catch (Exception e)
+            catch (Exception)
             {
 
                 return "";
@@ -170,7 +170,7 @@ namespace ToolCRM.Business
                             promiseDateInput = DateTime.MinValue;
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         try
                         {
@@ -201,10 +201,10 @@ namespace ToolCRM.Business
 
 
                     }
-                    if (promiseDateInput.Value != DateTime.MinValue)
+                    if ((promiseDateInput ?? DateTime.MinValue) != DateTime.MinValue)
                     {
                         sheet.Cells[indexLoop, 5].Style.Numberformat.Format = FORTMAT_DATETIME;
-                        sheet.Cells[indexLoop, 5].Value = promiseDateInput.Value;
+                        sheet.Cells[indexLoop, 5].Value = promiseDateInput ?? DateTime.MinValue;
                     }
                     sheet.Cells[indexLoop, 6].Value = item.PromiseAmt;
                     sheet.Cells[indexLoop, 7].Value = item.Remark;
@@ -212,19 +212,19 @@ namespace ToolCRM.Business
                     try
                     {
                         var dateCall = DateTime.Parse(item.CallDate);
-                        var totalSencond = TimeSpan.Parse(item.Time).TotalSeconds;
+                        var totalSencond = TimeSpan.Parse(item.Time ?? "00:00:00").TotalSeconds;
                         dateCall = dateCall.Date;
                         if (totalSencond > 0)
                         {
                             calldate = dateCall.AddSeconds(totalSencond);
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         try
                         {
                             DateTime date = DateTime.ParseExact(item.CallDate, "dd/MM/yyyy", null);
-                            var totalSencond = TimeSpan.Parse(item.Time).TotalSeconds;
+                            var totalSencond = TimeSpan.Parse(item.Time ?? "00:00:00").TotalSeconds;
                             date = date.Date;
                             if (totalSencond > 0)
                             {

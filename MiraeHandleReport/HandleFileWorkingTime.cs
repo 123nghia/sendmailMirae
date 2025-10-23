@@ -14,14 +14,14 @@ namespace MiraeHandleReport
             var pathInfo = "C:\\vietbank\\crm\\api\\services\\sendEmail\\MiraeHandleReport\\Data\\DataTc.xlsx";
             using (ExcelPackage package = new ExcelPackage(pathInfo))
             {
-                ExcelWorksheet workSheet = package.Workbook.Worksheets.FirstOrDefault();
+                ExcelWorksheet? workSheet = package.Workbook.Worksheets.FirstOrDefault();
                 if (workSheet != null)
                 {
                     int totalRows = workSheet.Rows.Count();
                     for (int i = 2; i <= totalRows; i++)
                     {
                         var item = new DataWorkingTimeSource();
-                        item.UserName = workSheet.Cells[i, 3].Value?.ToString();
+                        item.UserName = workSheet.Cells[i, 3].Value?.ToString() ?? string.Empty;
                         listData.Add(item);
                     }
                 }
@@ -51,7 +51,7 @@ namespace MiraeHandleReport
 
                 return datetimeInput.TimeOfDay.ToString();
             }
-            catch (Exception e)
+            catch (Exception)
             {
 
                 return "";
@@ -63,13 +63,13 @@ namespace MiraeHandleReport
         public static DateTime GetRandomDateTime(DateTime? min = null, DateTime? max = null)
         {
             Random rnd = new Random();
-            var range = max.Value - min.Value;
+            var range = (max ?? DateTime.Now) - (min ?? DateTime.MinValue);
             var randomUpperBound = (Int32)range.TotalSeconds;
             if (randomUpperBound <= 0)
                 randomUpperBound = rnd.Next(1, Int32.MaxValue);
 
             var randTimeSpan = TimeSpan.FromSeconds((Int64)(range.TotalSeconds - rnd.Next(0, randomUpperBound)));
-            return min.Value.Add(randTimeSpan);
+            return (min ?? DateTime.MinValue).Add(randTimeSpan);
         }
         public void OutputFileWorkingTime()
         {

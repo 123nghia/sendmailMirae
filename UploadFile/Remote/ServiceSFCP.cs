@@ -11,7 +11,7 @@ namespace UploadFile.Remote
         public ServiceSFCP()
         {
         }
-        public async Task UploadFileToRemoteFolder()
+        public Task UploadFileToRemoteFolder()
         {
             var dateHandle = DateTime.Now.AddDays(0);
             if (dateHandle.DayOfWeek == DayOfWeek.Monday)
@@ -22,10 +22,8 @@ namespace UploadFile.Remote
                 dateHandle = dateHandle.AddDays(-1);
             dateHandle = dateHandle.Date;
             var sufixFile = dateHandle.ToString("yyyyMMdd") + ".xlsx";
-            string localDirectory = "C:\\sendmailMirae\\sendEmail\\ResourceMirae\\";
             var localFileWorkingTime = "C:\\sendmailMirae\\sendEmail\\ResourceMirae\\workingTime";
             var localFileCallReport = "C:\\sendmailMirae\\sendEmail\\ResourceMirae\\callReport";
-            string remoteDirectory = "/uploads/PAYMENT";
             string remoteUPloadWorkingTime = "/uploads/WORKINGTIME/";
             string remoteUPloadCallReport = "/uploads/CAllREPORT/";
             var fileNameCallReport = "call_report_" + sufixFile;
@@ -75,6 +73,7 @@ namespace UploadFile.Remote
             {
                 File.Delete(fullPathCallReport);
             }
+            return Task.CompletedTask;
         }
 
 

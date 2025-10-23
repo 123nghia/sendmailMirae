@@ -44,7 +44,7 @@ namespace sendEmail
         }
 
   
-        public async Task SendEmailReport(Stream urlDowLoad)
+        public Task SendEmailReport(Stream urlDowLoad)
         {
             using (SmtpClient client = new SmtpClient("mail92115.maychuemail.com", 587))
             {
@@ -72,6 +72,7 @@ namespace sendEmail
                 Console.Read();
 
             }
+            return Task.CompletedTask;
         }
     }
 }

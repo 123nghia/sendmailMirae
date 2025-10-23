@@ -18,23 +18,23 @@ namespace sendEmail
         public Sendmail()
         {
         }
-        public async Task send()
+        public Task send()
         {
-            await sendemailreport();
-
+            sendemailreport();
+            return Task.CompletedTask;
         }
-        public async Task sendemailreport()
+        public Task sendemailreport()
         {
             var nameFileRun = "payment_" + DateTime.Now.ToString("yyyyMMdd") + ".xlsx";
             var pathFileRun = Path.Combine(LOCAL_FILE, nameFileRun);
             var pathFileMove = Path.Combine(LOCAL_SENDFILE, nameFileRun);
             if (File.Exists(pathFileMove))
             {
-                return;
+                return Task.CompletedTask;
             }
             if (!File.Exists(pathFileRun))
             {
-                return;
+                return Task.CompletedTask;
             }
             var monthtext = DateTime.Now.ToString("yyyy.mm.dd");
             var subjectmail = "[" + monthtext + "]" + "báo cáo payment hàng ngày";
@@ -82,6 +82,7 @@ namespace sendEmail
             File.Move(pathFileRun, pathFileMove);
             Console.WriteLine("Have move file.");
             Console.Read();
+            return Task.CompletedTask;
         }
     }
 }

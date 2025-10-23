@@ -23,14 +23,14 @@ namespace ToolCRM.Business
             }
             using (ExcelPackage package = new ExcelPackage(pathInfo))
             {
-                ExcelWorksheet workSheet = package.Workbook.Worksheets.FirstOrDefault();
+                ExcelWorksheet? workSheet = package.Workbook.Worksheets.FirstOrDefault();
                 if (workSheet != null)
                 {
                     int totalRows = workSheet.Rows.Count();
                     for (int i = 2; i <= totalRows; i++)
                     {
                         var item = new DataWorkingTimeSource();
-                        item.UserName = workSheet.Cells[i, 3].Value?.ToString();
+                        item.UserName = workSheet.Cells[i, 3].Value?.ToString() ?? string.Empty;
                         listData.Add(item);
                     }
                 }
@@ -46,14 +46,14 @@ namespace ToolCRM.Business
             using (ExcelPackage package = new ExcelPackage(pathInfo))
             {
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                ExcelWorksheet workSheet = package.Workbook.Worksheets.FirstOrDefault();
+                ExcelWorksheet? workSheet = package.Workbook.Worksheets.FirstOrDefault();
                 if (workSheet != null)
                 {
                     int totalRows = workSheet.Rows.Count();
                     for (int i = 2; i <= totalRows; i++)
                     {
                         var item = new DataWorkingTimeSource();
-                        item.UserName = workSheet.Cells[i, 1].Value?.ToString();
+                        item.UserName = workSheet.Cells[i, 1].Value?.ToString() ?? string.Empty;
                         listData.Add(item);
                     }
                 }
@@ -84,7 +84,7 @@ namespace ToolCRM.Business
 
                 return datetimeInput.TimeOfDay.ToString();
             }
-            catch (Exception e)
+            catch (Exception)
             {
 
                 return "";
@@ -96,13 +96,13 @@ namespace ToolCRM.Business
         public static DateTime GetRandomDateTime(DateTime? min = null, DateTime? max = null)
         {
             Random rnd = new Random();
-            var range = max.Value - min.Value;
+            var range = (max ?? DateTime.Now) - (min ?? DateTime.MinValue);
             var randomUpperBound = (Int32)range.TotalSeconds;
             if (randomUpperBound <= 0)
                 randomUpperBound = rnd.Next(1, Int32.MaxValue);
 
             var randTimeSpan = TimeSpan.FromSeconds((Int64)(range.TotalSeconds - rnd.Next(0, randomUpperBound)));
-            return min.Value.Add(randTimeSpan);
+            return (min ?? DateTime.MinValue).Add(randTimeSpan);
         }
 
 
@@ -115,7 +115,7 @@ namespace ToolCRM.Business
                 using (ExcelPackage package = new ExcelPackage(pathInfo))
                 {
                     ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                    ExcelWorksheet workSheet = package.Workbook.Worksheets.FirstOrDefault();
+                    ExcelWorksheet? workSheet = package.Workbook.Worksheets.FirstOrDefault();
                     if (workSheet != null)
                     {
                         int totalColumn = workSheet.Columns.Count();
@@ -135,7 +135,7 @@ namespace ToolCRM.Business
         }
         public bool OutputFileWorkingTime(DateTime? dayReport, string filePath)
         {
-            var timeRun = dayReport.Value;
+            var timeRun = dayReport ?? DateTime.Now;
       
             var listDataHandle = LoadFileDataSorceSingleFile(filePath);
             var dateGet = timeRun.ToString("yyyyMMdd");

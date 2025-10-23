@@ -14,7 +14,7 @@ namespace sendEmail
 
         }
 
-        public async Task DowloadFilePayment()
+        public Task DowloadFilePayment()
         {
             string localDirectory = "C:\\sendmailMirae\\sendEmail\\ResourceMirae\\";
             string remoteDirectory = "/uploads/PAYMENT";
@@ -22,12 +22,12 @@ namespace sendEmail
             var fullPathfilePayment = Path.Combine(localDirectory, filePayment);
             if (File.Exists(fullPathfilePayment))
             {
-                return;
+                return Task.CompletedTask;
             }
             var fullPathfilePaymentSended = Path.Combine("C:\\sendmailMirae\\sendEmail\\ResourceMirae\\FileSended\\", filePayment);
             if (File.Exists(fullPathfilePaymentSended))
             {
-                return;
+                return Task.CompletedTask;
             }
             using (var sftp = new SftpClient(HOST, PORT, USERNAME, PASSWORD))
             {
@@ -46,7 +46,7 @@ namespace sendEmail
                                 sftp.DownloadFile(remoteDirectory + "/" + remoteFileName, file1);
                             }
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             sftp.Disconnect();
                             sftp.Dispose();
@@ -56,8 +56,9 @@ namespace sendEmail
                 sftp.Disconnect();
                 sftp.Dispose();
             }
+            return Task.CompletedTask;
         }
-        public async Task UploadFileToRemoteFolder()
+        public Task UploadFileToRemoteFolder()
         {
             var dateHandle = DateTime.Now.AddDays(0);
             if (dateHandle.DayOfWeek == DayOfWeek.Monday)
@@ -68,10 +69,8 @@ namespace sendEmail
                 dateHandle = dateHandle.AddDays(-1);
             dateHandle = dateHandle.Date;
             var sufixFile = dateHandle.ToString("yyyyMMdd") + ".xlsx";
-            string localDirectory = "C:\\sendmailMirae\\sendEmail\\ResourceMirae\\";
             var localFileWorkingTime = "C:\\sendmailMirae\\sendEmail\\ResourceMirae\\workingTime";
             var localFileCallReport = "C:\\sendmailMirae\\sendEmail\\ResourceMirae\\callReport";
-            string remoteDirectory = "/uploads/PAYMENT";
             string remoteUPloadWorkingTime = "/uploads/WORKINGTIME/";
             string remoteUPloadCallReport = "/uploads/CAllREPORT/";
             var fileNameCallReport = "call_report_" + sufixFile;
@@ -121,6 +120,7 @@ namespace sendEmail
             {
                 File.Delete(fullPathCallReport);
             }
+            return Task.CompletedTask;
         }
 
 

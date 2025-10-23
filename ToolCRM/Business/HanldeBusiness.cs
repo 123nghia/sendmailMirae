@@ -24,7 +24,7 @@ namespace ToolCRM.Business
             var fileReprort = request.FileReport;
             var dayReport = request.DayReport;
             var filePath = "C:\\sendmailMirae\\ToolCRM\\SourceFile";
-            var dateGet = dayReport.Value.ToString("yyyyMMdd");
+            var dateGet = (dayReport ?? DateTime.Now).ToString("yyyyMMdd");
             var workingTimeReportFile =  Path.Combine( filePath,  "working_time_" + dateGet + ".xlsx");
             var reprortCDRFileName = Path.Combine(filePath, "call_report_" + dateGet + ".xlsx");
             if(File.Exists(workingTimeReportFile))
@@ -37,12 +37,14 @@ namespace ToolCRM.Business
             }
             using (var stream = System.IO.File.Create(workingTimeReportFile))
             {
-                await fileTC.CopyToAsync(stream);
+                if (fileTC != null)
+                    await fileTC.CopyToAsync(stream);
                 
             }
             using (var stream1 = System.IO.File.Create(reprortCDRFileName))
             {
-                await fileReprort.CopyToAsync(stream1);
+                if (fileReprort != null)
+                    await fileReprort.CopyToAsync(stream1);
 
             }
 

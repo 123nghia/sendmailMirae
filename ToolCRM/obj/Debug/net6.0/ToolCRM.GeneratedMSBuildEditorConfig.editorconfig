@@ -9,45 +9,45 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = ToolCRM
 build_property.RootNamespace = ToolCRM
-build_property.ProjectDir = C:\sendmailMirae\ToolCRM\
+build_property.ProjectDir = /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/
 build_property.RazorLangVersion = 6.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\sendmailMirae\ToolCRM
+build_property.MSBuildProjectDirectory = /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM
 build_property._RazorSourceGeneratorDebug = 
 
-[C:/sendmailMirae/ToolCRM/Views/Home/Index.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
+[/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/Views/Home/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9JbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/sendmailMirae/ToolCRM/Views/Home/IndexError.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleEVycm9yLmNzaHRtbA==
+[/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/Views/Home/IndexError.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9JbmRleEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/sendmailMirae/ToolCRM/Views/Home/Privacy.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
+[/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/Views/Home/Privacy.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9Qcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/sendmailMirae/ToolCRM/Views/Home/Success.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxTdWNjZXNzLmNzaHRtbA==
+[/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/Views/Home/Success.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9TdWNjZXNzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/sendmailMirae/ToolCRM/Views/Shared/Error.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
+[/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/Views/Shared/Error.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL0Vycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/sendmailMirae/ToolCRM/Views/Shared/_ValidationScriptsPartial.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+[/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/Views/Shared/_ValidationScriptsPartial.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/sendmailMirae/ToolCRM/Views/_ViewImports.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
+[/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/Views/_ViewImports.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/sendmailMirae/ToolCRM/Views/_ViewStart.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
+[/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/Views/_ViewStart.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/sendmailMirae/ToolCRM/Views/Shared/_Layout.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = b-inhi7vt9k0
+[/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/Views/Shared/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19MYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = b-l8d63gm1x8

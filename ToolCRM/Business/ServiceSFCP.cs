@@ -11,12 +11,10 @@ namespace ToolCRM.Business
         public ServiceSFCP()
         {
         }
-        private async Task UploadFileWorkingTime( string filePath)
+        private Task UploadFileWorkingTime( string filePath)
         {
             var dateHandle = DateTime.Now.AddDays(0);
-            string remoteDirectory = "/uploads/PAYMENT";
             string remoteUPloadWorkingTime = "/uploads/WORKINGTIME/";
-            string remoteUPloadCallReport = "/uploads/CAllREPORT/";
             var fullPathWorkingTimeReport = filePath;
             var streams = new List<Stream>();
             using (var sftp = new SftpClient(HOST, PORT, USERNAME, PASSWORD))
@@ -47,10 +45,10 @@ namespace ToolCRM.Business
             {
                 File.Delete(fullPathWorkingTimeReport);
             }
-
+            return Task.CompletedTask;
         }
 
-        private async Task UploadFileReportCDR(string filePath)
+        private Task UploadFileReportCDR(string filePath)
         {
             string remoteUPloadCallReport = "/uploads/CAllREPORT/";
             var fullPathWorkingTimeReport = filePath;
@@ -81,31 +79,34 @@ namespace ToolCRM.Business
             {
                 File.Delete(fullPathWorkingTimeReport);
             }
+            return Task.CompletedTask;
         }
-        private async Task HandleFolderWorkingTime()
+        private Task HandleFolderWorkingTime()
         {
           
             string localDirectory = "C:\\sendmailMirae\\ToolCRM\\UploadFile\\workingTime";
             var allFileInFolder = Directory.GetFiles(localDirectory);
             foreach (var item in allFileInFolder)
             {
-                await UploadFileWorkingTime(item);
+                UploadFileWorkingTime(item);
             }
-
+            return Task.CompletedTask;
         }
-        private async Task HandleFolderCDR()
+        private Task HandleFolderCDR()
         {
             string localDirectory = "C:\\sendmailMirae\\ToolCRM\\UploadFile\\CallReport";
             var allFileInFolder = Directory.GetFiles(localDirectory);
             foreach (var item in allFileInFolder)
             {
-                await UploadFileReportCDR(item);
+                UploadFileReportCDR(item);
             }
+            return Task.CompletedTask;
         }
-        public async Task  UploadFolderToSFCP()
+        public Task UploadFolderToSFCP()
         {
-            await HandleFolderWorkingTime();
-            await HandleFolderCDR();
+            HandleFolderWorkingTime();
+            HandleFolderCDR();
+            return Task.CompletedTask;
         }
 
         
