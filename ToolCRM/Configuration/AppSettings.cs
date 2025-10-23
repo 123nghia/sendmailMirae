@@ -51,5 +51,6 @@ namespace ToolCRM.Configuration
     {
         public string SendMailCron { get; set; } = string.Empty;
         public string DownloadFileCron { get; set; } = string.Empty;
+        public string UploadFileCron { get; set; } = string.Empty;
     }
 }

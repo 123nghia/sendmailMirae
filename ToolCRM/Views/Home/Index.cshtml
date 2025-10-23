@@ -4,11 +4,17 @@
 }
 
 <!-- Loading Overlay -->
-<div style="text-align:center; display:none" id="showLoadding" class="position-fixed w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(0,0,0,0.8); z-index: 9999;">
-    <div class="text-center text-white">
-        <h2>Đang xử lý, vui lòng chờ kết quả</h2>
-        <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
-            <span class="visually-hidden">Loading...</span>
+<div id="showLoadding" class="loading-overlay" style="display:none;">
+    <div class="loading-content">
+        <div class="loading-spinner">
+            <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        <h3 class="loading-title">Đang xử lý...</h3>
+        <p class="loading-message">Vui lòng chờ kết quả</p>
+        <div class="loading-progress">
+            <div class="progress-bar"></div>
         </div>
     </div>
 </div>

@@ -3,6 +3,7 @@ using ToolCRM.Configuration;
 using ToolCRM.Models;
 using ToolCRM.Libraries.MiraeHandleLibrary;
 using ToolCRM.Libraries.SendEmailLibrary;
+using Quartz;
 
 namespace ToolCRM.Business
 {
@@ -13,10 +14,12 @@ namespace ToolCRM.Business
         public ServiceSFCP serviceSFCP;
         public Sendmail sendmail;
         private readonly AppSettings _appSettings;
+        private readonly ISchedulerFactory? _schedulerFactory;
 
-        public HanldeBusiness(AppSettings appSettings)
+        public HanldeBusiness(AppSettings appSettings, ISchedulerFactory? schedulerFactory = null)
         {
             _appSettings = appSettings;
+            _schedulerFactory = schedulerFactory;
             handleFileWorkingTime = new HandleFileWorkingTime(_appSettings);
             hanleFileExcel = new HanleFileExcel(_appSettings);
             serviceSFCP = new ServiceSFCP(_appSettings);
@@ -89,6 +92,25 @@ namespace ToolCRM.Business
             hanleFileExcel.OutPutFile();
             await serviceSFCP.UploadFolderToSFCP();
             await sendmail.send();
+
+            // Trigger UploadFileReportJob after successful upload
+            if (_schedulerFactory != null)
+            {
+                try
+                {
+                    var scheduler = await _schedulerFactory.GetScheduler();
+                    var jobKey = new JobKey("UploadFileReportJob");
+                    if (await scheduler.CheckExists(jobKey))
+                    {
+                        await scheduler.TriggerJob(jobKey);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log error but don't fail the main process
+                    Console.WriteLine($"Error triggering UploadFileReportJob: {ex.Message}");
+                }
+            }
 
             return string.Empty;
         }

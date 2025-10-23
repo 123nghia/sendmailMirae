@@ -25,6 +25,9 @@ builder.Services.AddQuartz(q =>
     var downloadFileJobKey = new JobKey("DownloadFileJob");
     q.AddJob<DownloadFileJob>(opts => opts.WithIdentity(downloadFileJobKey));
     
+    var uploadFileJobKey = new JobKey("UploadFileReportJob");
+    q.AddJob<UploadFileReportJob>(opts => opts.WithIdentity(uploadFileJobKey));
+    
     // Get cron expressions from configuration
     var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
     
@@ -38,6 +41,11 @@ builder.Services.AddQuartz(q =>
         .ForJob(downloadFileJobKey)
         .WithIdentity("DownloadFileTrigger")
         .WithCronSchedule(appSettings?.Quartz?.DownloadFileCron ?? "0 0 8 ? * MON,TUE,WED,THU,FRI,SAT *"));
+    
+    q.AddTrigger(opts => opts
+        .ForJob(uploadFileJobKey)
+        .WithIdentity("UploadFileTrigger")
+        .WithCronSchedule(appSettings?.Quartz?.UploadFileCron ?? "0 30 8 ? * MON,TUE,WED,THU,FRI,SAT *"));
 });
 
 // Add Quartz hosted service

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using ToolCRM.Business;
 using ToolCRM.Configuration;
 using ToolCRM.Models;
+using Quartz;
 
 namespace ToolCRM.Controllers
 {
@@ -11,13 +12,15 @@ namespace ToolCRM.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly AppSettings _appSettings;
+        private readonly ISchedulerFactory _schedulerFactory;
         private HanldeBusiness bussines;
 
-        public HomeController(ILogger<HomeController> logger, IOptions<AppSettings> appSettings)
+        public HomeController(ILogger<HomeController> logger, IOptions<AppSettings> appSettings, ISchedulerFactory schedulerFactory)
         {
             _logger = logger;
             _appSettings = appSettings.Value;
-            bussines = new HanldeBusiness(_appSettings);
+            _schedulerFactory = schedulerFactory;
+            bussines = new HanldeBusiness(_appSettings, _schedulerFactory);
         }
 
         public async Task<IActionResult> Index(InputRequest? request)
