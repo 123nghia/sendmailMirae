@@ -1,5 +1,6 @@
 using ToolCRM.Configuration;
 using ToolCRM.Jobs;
+using ToolCRM.Services;
 using Quartz;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,9 @@ builder.Services.AddControllersWithViews();
 
 // Configure AppSettings
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+
+// Register services
+builder.Services.AddScoped<SftpBrowserService>();
 
 // Add Quartz services
 builder.Services.AddQuartz(q =>
