@@ -26,17 +26,37 @@ namespace ToolCRM.Controllers
             {
                 return View();
             }
-            var fileCV = request.FileTC;
-            var fileReport = request.FileReport;
-            var dayReport = request.DayReport;
-            var result = await bussines.MoveFileInputFormAsync(request);
 
-            if(string.IsNullOrEmpty(result))
+            // Validate file uploads
+            if (request.FileTC == null || request.FileTC.Length == 0)
             {
-                return View("Success");
+                ViewBag.ErrorMessage = "Vui lòng chọn file TC (File nhân viên)";
+                return View("IndexError");
             }
-            ViewBag.ErrorMesage = result;
-            return View("IndexError");
+
+            if (request.FileReport == null || request.FileReport.Length == 0)
+            {
+                ViewBag.ErrorMessage = "Vui lòng chọn file báo cáo (File CDR)";
+                return View("IndexError");
+            }
+
+            try
+            {
+                var result = await bussines.MoveFileInputFormAsync(request);
+
+                if(string.IsNullOrEmpty(result))
+                {
+                    return View("Success");
+                }
+                ViewBag.ErrorMessage = result;
+                return View("IndexError");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing file upload");
+                ViewBag.ErrorMessage = $"Lỗi khi xử lý file: {ex.Message}";
+                return View("IndexError");
+            }
         }
         public IActionResult Privacy()
         {

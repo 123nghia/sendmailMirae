@@ -30,6 +30,13 @@ namespace ToolCRM.Business
             var fileReprort = request.FileReport;
             var dayReport = request.DayReport;
             var filePath = _appSettings.Paths.ToolCRMSourceFile;
+            
+            // Ensure directory exists
+            if (!Directory.Exists(filePath))
+            {
+                Directory.CreateDirectory(filePath);
+            }
+            
             var dateGet = (dayReport ?? DateTime.Now).ToString("yyyyMMdd");
             var workingTimeReportFile =  Path.Combine( filePath,  "working_time_" + dateGet + ".xlsx");
             var reprortCDRFileName = Path.Combine(filePath, "call_report_" + dateGet + ".xlsx");
@@ -41,17 +48,30 @@ namespace ToolCRM.Business
             {
                 File.Delete(reprortCDRFileName);
             }
-            using (var stream = System.IO.File.Create(workingTimeReportFile))
+            // Save FileTC
+            if (fileTC != null && fileTC.Length > 0)
             {
-                if (fileTC != null)
+                using (var stream = System.IO.File.Create(workingTimeReportFile))
+                {
                     await fileTC.CopyToAsync(stream);
-                
+                }
             }
-            using (var stream1 = System.IO.File.Create(reprortCDRFileName))
+            else
             {
-                if (fileReprort != null)
-                    await fileReprort.CopyToAsync(stream1);
+                return "File TC không hợp lệ hoặc rỗng";
+            }
 
+            // Save FileReport
+            if (fileReprort != null && fileReprort.Length > 0)
+            {
+                using (var stream1 = System.IO.File.Create(reprortCDRFileName))
+                {
+                    await fileReprort.CopyToAsync(stream1);
+                }
+            }
+            else
+            {
+                return "File báo cáo không hợp lệ hoặc rỗng";
             }
 
             // Validate files by checking if they exist and are not empty
