@@ -23,8 +23,16 @@ function submitForm() {
         alert("chưa upload file báo cáo");
         return;
     }
-    document.getElementById('contentdiv').style.display = "none";
-    document.getElementById('showLoadding').style.display = "block";
+    // Hide content and show loading
+    var contentDiv = document.getElementById('contentdiv');
+    if (contentDiv) {
+        contentDiv.style.display = "none";
+    }
+    
+    var loadingDiv = document.getElementById('showLoadding');
+    if (loadingDiv) {
+        loadingDiv.style.display = "block";
+    }
     const myTimeout = setTimeout(myStopFunction, 2000);
     function myStopFunction() {
         document.getElementById('formSubmitReport').submit();
