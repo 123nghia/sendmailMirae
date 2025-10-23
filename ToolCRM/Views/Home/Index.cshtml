@@ -1,53 +1,171 @@
 ﻿@model ToolCRM.Models.InputRequest
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard";
 }
 
-
-
-<div style="text-align:center; display:none" id="showLoadding">
-    <h2>Đang xử lý, vui lòng chờ kết quả</h2>
-    <div class="spinner-grow text-primary" role="status">
-    </div>
-    <div class="spinner-grow text-secondary" role="status">
-    </div>
-    <div class="spinner-grow text-success" role="status">
-    </div>
-    <div class="spinner-grow text-danger" role="status">
-    </div>
-    <div class="spinner-grow text-warning" role="status">
-    </div>
-    <div class="spinner-grow text-info" role="status">
-    </div>
-    <div class="spinner-grow text-light" role="status">
-    </div>
-    <div class="spinner-grow text-dark" role="status">
-    </div>
-</div>
-<div class="container" id="contentdiv">
-    <h2>Hỗ trợ làm báo cáo </h2>
-    <form method="post" action="/" id="formSubmitReport" enctype="multipart/form-data">
-  
-        <div class="row">
-            <div class="mb-3">
-                <label for="exampleInputEmail1" class="form-label">Ngày làm báo cáo</label>
-                <input type="date" class="form-control" name="DayReport" id="dayReportTime" aria-describedby="emailHelp">
-            </div>
-            <div class="mb-3">
-                <label for="formFile" class="form-label">File nhân viên</label>
-                <input class="form-control" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" name="FileTC" id="fileFileTC">
-                <div class="form-text">Chọn File excel</div> <a href="/Tc.xlsx" download="dataTCTemplate.xlsx">File mẫu </a>
-            </div>
-            <div class="mb-3">
-                <label for="formFile" class="form-label">File báo cáo hàng ngày (CDR)</label>
-                <input class="form-control" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"  name="FileReport" id="fileFileReport">
-                <div class="form-text">Chọn File excel</div><a href="/call_report_20250211.xlsx" download="dataCDR.xlsx">File mẫu </a>
-            </div>
-            <button type="button" onclick="submitForm()" class="btn btn-primary">Đồng bộ báo cáo</button>
+<!-- Loading Overlay -->
+<div style="text-align:center; display:none" id="showLoadding" class="position-fixed w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(0,0,0,0.8); z-index: 9999;">
+    <div class="text-center text-white">
+        <h2>Đang xử lý, vui lòng chờ kết quả</h2>
+        <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
         </div>
-    </form>
-    <br />
-    <br />
-    
     </div>
 </div>
+
+<!-- Dashboard Stats -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-file-upload fa-2x mb-2"></i>
+                <h5>File Upload</h5>
+                <p class="mb-0">Xử lý báo cáo</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-envelope fa-2x mb-2"></i>
+                <h5>Email System</h5>
+                <p class="mb-0">Gửi báo cáo tự động</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-server fa-2x mb-2"></i>
+                <h5>SFTP Server</h5>
+                <p class="mb-0">Quản lý file từ xa</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-tasks fa-2x mb-2"></i>
+                <h5>Job Scheduler</h5>
+                <p class="mb-0">Tự động hóa tác vụ</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Features -->
+<div class="row">
+    <!-- File Upload Section -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Upload & Xử Lý Báo Cáo</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/" id="formSubmitReport" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="dayReportTime" class="form-label">
+                                <i class="fas fa-calendar me-1"></i>Ngày làm báo cáo
+                            </label>
+                            <input type="date" class="form-control" name="DayReport" id="dayReportTime">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-file-excel me-1"></i>File nhân viên
+                            </label>
+                            <input class="form-control" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" name="FileTC" id="fileFileTC">
+                            <small class="form-text text-muted">
+                                <a href="/Tc.xlsx" download="dataTCTemplate.xlsx" class="text-decoration-none">
+                                    <i class="fas fa-download me-1"></i>File mẫu
+                                </a>
+                            </small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-chart-line me-1"></i>File báo cáo hàng ngày (CDR)
+                        </label>
+                        <input class="form-control" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" name="FileReport" id="fileFileReport">
+                        <small class="form-text text-muted">
+                            <a href="/call_report_20250211.xlsx" download="dataCDR.xlsx" class="text-decoration-none">
+                                <i class="fas fa-download me-1"></i>File mẫu
+                            </a>
+                        </small>
+                    </div>
+                    <button type="button" onclick="submitForm()" class="btn btn-primary btn-admin">
+                        <i class="fas fa-sync me-2"></i>Đồng bộ báo cáo
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Thao tác nhanh</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/Home/SendEmail" class="btn btn-success btn-admin" onclick="showLoading()">
+                        <i class="fas fa-envelope me-2"></i>Gửi Email Báo Cáo
+                    </a>
+                    <a href="/Home/SendLatestPaymentEmail" class="btn btn-outline-success btn-admin" onclick="showLoading()">
+                        <i class="fas fa-paper-plane me-2"></i>Gửi Lại Email Payment
+                    </a>
+                    <a href="/Home/DownloadPayment" class="btn btn-info btn-admin" onclick="showLoading()">
+                        <i class="fas fa-download me-2"></i>Tải File Payment
+                    </a>
+                    <a href="/Home/UploadToSFTP" class="btn btn-warning btn-admin" onclick="showLoading()">
+                        <i class="fas fa-upload me-2"></i>Upload Lên SFTP
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Management -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="feature-icon bg-primary text-white">
+                    <i class="fas fa-server"></i>
+                </div>
+                <h5>SFTP Browser</h5>
+                <p class="text-muted">Duyệt và tải xuống file từ SFTP server</p>
+                <a href="/Sftp" class="btn btn-outline-primary btn-admin">
+                    <i class="fas fa-external-link-alt me-2"></i>Mở SFTP Browser
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="feature-icon bg-warning text-white">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <h5>Job Management</h5>
+                <p class="text-muted">Quản lý và theo dõi các tác vụ tự động</p>
+                <a href="/Job" class="btn btn-outline-warning btn-admin">
+                    <i class="fas fa-external-link-alt me-2"></i>Mở Job Manager
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showLoading() {
+    document.getElementById('showLoadding').style.display = 'flex';
+}
+
+function submitForm() {
+    showLoading();
+    document.getElementById('formSubmitReport').submit();
+}
+</script>

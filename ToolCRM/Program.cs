@@ -1,7 +1,43 @@
+using ToolCRM.Configuration;
+using ToolCRM.Jobs;
+using Quartz;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Configure AppSettings
+builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+
+// Add Quartz services
+builder.Services.AddQuartz(q =>
+{
+    
+    // Register jobs
+    var sendEmailJobKey = new JobKey("SendEmailJob");
+    q.AddJob<SendEmailJob>(opts => opts.WithIdentity(sendEmailJobKey));
+    
+    var downloadFileJobKey = new JobKey("DownloadFileJob");
+    q.AddJob<DownloadFileJob>(opts => opts.WithIdentity(downloadFileJobKey));
+    
+    // Get cron expressions from configuration
+    var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
+    
+    // Add triggers
+    q.AddTrigger(opts => opts
+        .ForJob(sendEmailJobKey)
+        .WithIdentity("SendEmailTrigger")
+        .WithCronSchedule(appSettings?.Quartz?.SendMailCron ?? "0 10,40 8-15 ? * MON,TUE,WED,THU,FRI,SAT *"));
+    
+    q.AddTrigger(opts => opts
+        .ForJob(downloadFileJobKey)
+        .WithIdentity("DownloadFileTrigger")
+        .WithCronSchedule(appSettings?.Quartz?.DownloadFileCron ?? "0 0 8 ? * MON,TUE,WED,THU,FRI,SAT *"));
+});
+
+// Add Quartz hosted service
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 

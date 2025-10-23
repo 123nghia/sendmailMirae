@@ -1,0 +1,139 @@
+@{
+    ViewData["Title"] = "Payment Files";
+}
+
+<div class="row mb-4">
+    <div class="col">
+        <h3><i class="fas fa-file-excel me-2"></i>Danh sách File Payment</h3>
+        <p class="text-muted">Quản lý và xem thông tin các file payment hiện có</p>
+    </div>
+    <div class="col-auto">
+        <a href="/" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Quay lại Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Files Payment</h5>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.PaymentFiles != null && ((List<object>)ViewBag.PaymentFiles).Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-file me-1"></i>Tên File</th>
+                                    <th><i class="fas fa-weight me-1"></i>Kích thước</th>
+                                    <th><i class="fas fa-clock me-1"></i>Thời gian tạo</th>
+                                    <th><i class="fas fa-cogs me-1"></i>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (dynamic file in (List<object>)ViewBag.PaymentFiles)
+                                {
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-file-excel text-success me-2"></i>
+                                            <strong>@file.Name</strong>
+                                        </td>
+                                        <td>@file.Size</td>
+                                        <td>@file.LastModified</td>
+                                        <td>
+                                            <a href="/Home/SendLatestPaymentEmail" class="btn btn-sm btn-outline-success" onclick="showLoading()">
+                                                <i class="fas fa-paper-plane me-1"></i>Gửi Email
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Không có file payment nào</h5>
+                        <p class="text-muted">Chưa có file payment nào trong thư mục</p>
+                        <a href="/Home/DownloadPayment" class="btn btn-primary" onclick="showLoading()">
+                            <i class="fas fa-download me-2"></i>Tải File Payment
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Thông tin</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6><i class="fas fa-folder me-1"></i>Thư mục lưu trữ:</h6>
+                    <code>@ViewBag.LocalDirectory</code>
+                </div>
+                
+                <div class="mb-3">
+                    <h6><i class="fas fa-envelope me-1"></i>Email nhận:</h6>
+                    <span class="badge bg-success">admin@smartbank.com.vn</span>
+                </div>
+
+                <div class="mb-3">
+                    <h6><i class="fas fa-clock me-1"></i>Lịch gửi tự động:</h6>
+                    <small class="text-muted">
+                        <i class="fas fa-calendar me-1"></i>10:00 và 10:40<br>
+                        <i class="fas fa-calendar me-1"></i>Thứ 2 - Thứ 7
+                    </small>
+                </div>
+
+                <hr>
+
+                <div class="d-grid gap-2">
+                    <a href="/Home/SendLatestPaymentEmail" class="btn btn-success" onclick="showLoading()">
+                        <i class="fas fa-paper-plane me-2"></i>Gửi Email Mới Nhất
+                    </a>
+                    <a href="/Home/DownloadPayment" class="btn btn-info" onclick="showLoading()">
+                        <i class="fas fa-download me-2"></i>Tải File Mới
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showLoading() {
+    // Tạo loading overlay
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    overlay.innerHTML = `
+        <div class="text-center text-white">
+            <div class="spinner-border text-light mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h4>Đang xử lý...</h4>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+}
+</script>

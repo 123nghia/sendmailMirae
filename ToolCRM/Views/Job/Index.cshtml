@@ -1,0 +1,140 @@
+@{
+    ViewData["Title"] = "Job Management";
+}
+
+<div class="container">
+    <h2>Job Scheduler Management</h2>
+    
+    @if (!string.IsNullOrEmpty(ViewBag.Message))
+    {
+        <div class="alert alert-success" role="alert">
+            @ViewBag.Message
+        </div>
+    }
+    
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">
+            @ViewBag.ErrorMessage
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Scheduler Status</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Scheduler Name:</strong> @ViewBag.SchedulerName</p>
+                    <p><strong>Status:</strong> 
+                        @if (ViewBag.IsStarted)
+                        {
+                            <span class="badge bg-success">Running</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Stopped</span>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Scheduler Control</h5>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group" role="group">
+                        <a href="/Job/StartScheduler" class="btn btn-success">Start Scheduler</a>
+                        <a href="/Job/StopScheduler" class="btn btn-danger">Stop Scheduler</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Send Email Job</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Cron Schedule:</strong> 0 10,40 8-15 ? * MON,TUE,WED,THU,FRI,SAT *</p>
+                    <p><strong>Description:</strong> Gửi email báo cáo payment hàng ngày</p>
+                    <a href="/Job/TriggerSendEmailJob" class="btn btn-primary">Trigger Now</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Download File Job</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Cron Schedule:</strong> 0 0 8 ? * MON,TUE,WED,THU,FRI,SAT *</p>
+                    <p><strong>Description:</strong> Tải file payment từ SFTP</p>
+                    <a href="/Job/TriggerDownloadFileJob" class="btn btn-primary">Trigger Now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Registered Jobs</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.JobKeys != null)
+                    {
+                        <ul class="list-group">
+                            @foreach (var jobKey in ViewBag.JobKeys)
+                            {
+                                <li class="list-group-item">@jobKey.Name (@jobKey.Group)</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p>No jobs registered</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Active Triggers</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.TriggerKeys != null)
+                    {
+                        <ul class="list-group">
+                            @foreach (var triggerKey in ViewBag.TriggerKeys)
+                            {
+                                <li class="list-group-item">@triggerKey.Name (@triggerKey.Group)</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p>No triggers active</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="/" class="btn btn-secondary">Back to Home</a>
+    </div>
+</div>

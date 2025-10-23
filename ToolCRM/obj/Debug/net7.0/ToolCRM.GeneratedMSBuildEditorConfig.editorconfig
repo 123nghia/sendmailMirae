@@ -24,12 +24,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9JbmRleEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/Views/Home/PaymentFiles.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9QYXltZW50RmlsZXMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9Qcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/Views/Home/Success.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9TdWNjZXNzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/Views/Job/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSm9iL0luZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/Views/Shared/Error.cshtml]
