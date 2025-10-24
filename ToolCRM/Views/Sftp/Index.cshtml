@@ -14,33 +14,73 @@
     </div>
 </div>
 
-<!-- Connection Info -->
+<!-- Connection Status -->
+@{
+    var connectionStatus = ViewBag.ConnectionStatus as dynamic;
+    var isConnected = connectionStatus?.IsConnected ?? false;
+}
+
 <div class="row mb-4">
     <div class="col-md-6">
-        <div class="card bg-info text-white">
+        <div class="card @(isConnected ? "bg-success" : "bg-danger") text-white">
             <div class="card-body">
-                <h6 class="card-title"><i class="fas fa-info-circle me-2"></i>Thông tin kết nối</h6>
-                <p class="card-text mb-1"><strong>Host:</strong> @ViewBag.SftpHost</p>
-                <p class="card-text mb-1"><strong>Port:</strong> @ViewBag.SftpPort</p>
-                <p class="card-text mb-0"><strong>User:</strong> @ViewBag.Username</p>
+                <h6 class="card-title">
+                    <i class="fas @(isConnected ? "fa-check-circle" : "fa-times-circle") me-2"></i>
+                    Trạng thái kết nối SFTP
+                </h6>
+                @if (isConnected)
+                {
+                    <p class="card-text mb-1"><strong>Trạng thái:</strong> ✅ Đã kết nối</p>
+                    <p class="card-text mb-1"><strong>Host:</strong> @ViewBag.SftpHost</p>
+                    <p class="card-text mb-1"><strong>Port:</strong> @ViewBag.SftpPort</p>
+                    <p class="card-text mb-0"><strong>User:</strong> @ViewBag.Username</p>
+                }
+                else
+                {
+                    <p class="card-text mb-1"><strong>Trạng thái:</strong> ❌ Không thể kết nối</p>
+                    <p class="card-text mb-1"><strong>Host:</strong> @ViewBag.SftpHost</p>
+                    <p class="card-text mb-1"><strong>Port:</strong> @ViewBag.SftpPort</p>
+                    <p class="card-text mb-0"><strong>User:</strong> @ViewBag.Username</p>
+                }
             </div>
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h6 class="card-title"><i class="fas fa-folder me-2"></i>Thư mục hiện tại</h6>
-                <p class="card-text mb-0"><code>@ViewBag.CurrentPath</code></p>
+        @if (isConnected)
+        {
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-folder me-2"></i>Thư mục hiện tại</h6>
+                    <p class="card-text mb-0"><code>@ViewBag.CurrentPath</code></p>
+                </div>
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-exclamation-triangle me-2"></i>Không thể truy cập</h6>
+                    <p class="card-text mb-0">Vui lòng kiểm tra cấu hình SFTP trong appsettings.json</p>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
 <!-- Error Message -->
 @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
 {
-    <div class="alert alert-danger" role="alert">
-        <i class="fas fa-exclamation-triangle me-2"></i>@ViewBag.ErrorMessage
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle me-3 fa-2x"></i>
+            <div class="flex-grow-1">
+                <h5 class="alert-heading mb-2">❌ Không thể kết nối SFTP Server!</h5>
+                <div class="error-details">
+                    @Html.Raw(ViewBag.ErrorMessage.Replace("\n", "<br>"))
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
 

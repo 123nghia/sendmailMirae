@@ -12,50 +12,87 @@ namespace ToolCRM.Libraries.SendEmailLibrary
             _appSettings = appSettings;
         }
 
-        public Task DowloadFilePayment()
+        private string GetFriendlyErrorMessage(Exception ex)
+        {
+            return ex switch
+            {
+                System.Net.Sockets.SocketException => "Lỗi kết nối mạng: Không thể kết nối đến server SFTP",
+                Renci.SshNet.Common.SshConnectionException => "Lỗi xác thực: Sai thông tin đăng nhập SFTP",
+                Renci.SshNet.Common.SshOperationTimeoutException => "Timeout: Server SFTP không phản hồi",
+                _ => ex.Message
+            };
+        }
+
+        public async Task<(bool hasNewFile, string fileName)> DowloadFilePayment()
         {
             string localDirectory = _appSettings.Paths.LocalFile;
             string remoteDirectory = _appSettings.RemotePaths.Payment;
             var filePayment = "payment_" + DateTime.Now.ToString("yyyyMMdd") + ".xlsx";
             var fullPathfilePayment = Path.Combine(localDirectory, filePayment);
+            
+            // Check if file already exists locally
             if (File.Exists(fullPathfilePayment))
             {
-                return Task.CompletedTask;
+                return (false, filePayment);
             }
+            
             var fullPathfilePaymentSended = Path.Combine(_appSettings.Paths.LocalSendFile, filePayment);
             if (File.Exists(fullPathfilePaymentSended))
             {
-                return Task.CompletedTask;
+                return (false, filePayment);
             }
-            using (var sftp = new SftpClient(_appSettings.SFTP.Host, _appSettings.SFTP.Port, _appSettings.SFTP.Username, _appSettings.SFTP.Password))
+            
+            bool hasNewFile = false;
+            string downloadedFileName = "";
+            
+            try
             {
-                sftp.ConnectionInfo.Timeout = TimeSpan.FromMinutes(2);
-                sftp.Connect();
-                var files = sftp.ListDirectory(remoteDirectory);
-                foreach (var item in files)
+                using (var sftp = new SftpClient(_appSettings.SFTP.Host, _appSettings.SFTP.Port, _appSettings.SFTP.Username, _appSettings.SFTP.Password))
                 {
-                    string remoteFileName = item.Name;
-                    if (item.LastWriteTime.Date == DateTime.Today && item.IsRegularFile == true)
+                    sftp.ConnectionInfo.Timeout = TimeSpan.FromSeconds(10);
+                    
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                    await Task.Run(() => sftp.Connect(), cts.Token);
+                    
+                    var files = sftp.ListDirectory(remoteDirectory);
+                    
+                    foreach (var item in files)
                     {
-                        try
+                        string remoteFileName = item.Name;
+                        if (item.LastWriteTime.Date == DateTime.Today && item.IsRegularFile == true)
                         {
-                            using (Stream file1 = File.Create(localDirectory + remoteFileName))
+                            try
                             {
-                                sftp.DownloadFile(remoteDirectory + "/" + remoteFileName, file1);
+                                using (Stream file1 = File.Create(localDirectory + remoteFileName))
+                                {
+                                    sftp.DownloadFile(remoteDirectory + "/" + remoteFileName, file1);
+                                    hasNewFile = true;
+                                    downloadedFileName = remoteFileName;
+                                    Console.WriteLine($"Downloaded new payment file: {remoteFileName}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error downloading file {remoteFileName}: {ex.Message}");
+                                throw;
                             }
                         }
-                        catch (Exception)
-                        {
-                            sftp.Disconnect();
-                            sftp.Dispose();
-                        }
                     }
+                    sftp.Disconnect();
                 }
-                sftp.Disconnect();
-                sftp.Dispose();
             }
-            return Task.CompletedTask;
+            catch (OperationCanceledException)
+            {
+                throw new Exception("Timeout: Không thể kết nối SFTP trong 10 giây");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi SFTP: {GetFriendlyErrorMessage(ex)}");
+            }
+            
+            return (hasNewFile, downloadedFileName);
         }
+
         public Task UploadFileToRemoteFolder()
         {
             var dateHandle = DateTime.Now.AddDays(0);
@@ -69,13 +106,12 @@ namespace ToolCRM.Libraries.SendEmailLibrary
             var sufixFile = dateHandle.ToString("yyyyMMdd") + ".xlsx";
             var localFileWorkingTime = _appSettings.Paths.ToolCRMUploaWorkingTime;
             var localFileCallReport = _appSettings.Paths.ToolCRMUploaCallReport;
-            string remoteUPloadWorkingTime = _appSettings.RemotePaths.WorkingTime;
-            string remoteUPloadCallReport = _appSettings.RemotePaths.CallReport;
-            var fileNameCallReport = "call_report_" + sufixFile;
-            var fullPathCallReport = Path.Combine(localFileCallReport, fileNameCallReport);
-            var fileNameWorkingTimeReport = "working_time_" + sufixFile;
-            var fullPathWorkingTimeReport = Path.Combine(localFileWorkingTime, fileNameWorkingTimeReport);
+            var remoteUPloadWorkingTime = _appSettings.RemotePaths.WorkingTime;
+            var remoteUPloadCallReport = _appSettings.RemotePaths.CallReport;
+            var fullPathWorkingTimeReport = Path.Combine(localFileWorkingTime, "working_time_" + sufixFile);
+            var fullPathCallReport = Path.Combine(localFileCallReport, "call_report_" + sufixFile);
             var streams = new List<Stream>();
+
             using (var sftp = new SftpClient(_appSettings.SFTP.Host, _appSettings.SFTP.Port, _appSettings.SFTP.Username, _appSettings.SFTP.Password))
             {
                 sftp.ConnectionInfo.Timeout = TimeSpan.FromMinutes(2);
@@ -121,46 +157,49 @@ namespace ToolCRM.Libraries.SendEmailLibrary
             return Task.CompletedTask;
         }
 
-        public Task UploadFolderToSFCP()
+        public async Task UploadFolderToSFCP()
         {
             var dateGet = DateTime.Now.ToString("yyyyMMdd");
             var fullPathWorkingTimeReport = Path.Combine(_appSettings.Paths.ToolCRMUploaWorkingTime, "working_time_" + dateGet + ".xlsx");
             var fullPathCallReport = Path.Combine(_appSettings.Paths.ToolCRMUploaCallReport, "call_report_" + dateGet + ".xlsx");
             var remoteUPloadWorkingTime = _appSettings.RemotePaths.WorkingTime;
             var remoteUPloadCallReport = _appSettings.RemotePaths.CallReport;
-            var streams = new List<Stream>();
-
-            using (var sftp = new SftpClient(_appSettings.SFTP.Host, _appSettings.SFTP.Port, _appSettings.SFTP.Username, _appSettings.SFTP.Password))
+            try
             {
-                sftp.ConnectionInfo.Timeout = TimeSpan.FromMinutes(2);
-                sftp.Connect();
-                if (File.Exists(fullPathWorkingTimeReport))
+                using (var sftp = new SftpClient(_appSettings.SFTP.Host, _appSettings.SFTP.Port, _appSettings.SFTP.Username, _appSettings.SFTP.Password))
                 {
-                    FileInfo fileWorkingTime = new FileInfo(fullPathWorkingTimeReport);
-                    var fileStream = new FileStream(fileWorkingTime.FullName, FileMode.Open);
-                    if (fileStream != null)
+                    sftp.ConnectionInfo.Timeout = TimeSpan.FromSeconds(10);
+                    
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                    await Task.Run(() => sftp.Connect(), cts.Token);
+                    
+                    if (File.Exists(fullPathWorkingTimeReport))
                     {
-                        sftp.UploadFile(fileStream, remoteUPloadWorkingTime + fileWorkingTime.Name, null);
-                        streams.Add(fileStream);
+                        FileInfo fileWorkingTime = new FileInfo(fullPathWorkingTimeReport);
+                        using (var fileStream = new FileStream(fileWorkingTime.FullName, FileMode.Open, FileAccess.Read))
+                        {
+                            sftp.UploadFile(fileStream, remoteUPloadWorkingTime + fileWorkingTime.Name, null);
+                        }
                     }
-                }
-                if (File.Exists(fullPathCallReport))
-                {
-                    FileInfo fileCallreport = new FileInfo(fullPathCallReport);
-                    var fileStream2 = new FileStream(fileCallreport.FullName, FileMode.Open);
-                    if (fileStream2 != null)
+                    if (File.Exists(fullPathCallReport))
                     {
-                        sftp.UploadFile(fileStream2, remoteUPloadCallReport + fileCallreport.Name, null);
-                        streams.Add(fileStream2);
+                        FileInfo fileCallreport = new FileInfo(fullPathCallReport);
+                        using (var fileStream2 = new FileStream(fileCallreport.FullName, FileMode.Open, FileAccess.Read))
+                        {
+                            sftp.UploadFile(fileStream2, remoteUPloadCallReport + fileCallreport.Name, null);
+                        }
                     }
-                }
 
-                sftp.Disconnect();
-                sftp.Dispose();
+                    sftp.Disconnect();
+                }
             }
-            foreach (var item1 in streams)
+            catch (OperationCanceledException)
             {
-                item1.Dispose();
+                throw new Exception("Timeout: Không thể kết nối SFTP trong 10 giây");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi SFTP: {GetFriendlyErrorMessage(ex)}");
             }
 
             if (File.Exists(fullPathWorkingTimeReport))
@@ -172,11 +211,6 @@ namespace ToolCRM.Libraries.SendEmailLibrary
             {
                 File.Delete(fullPathCallReport);
             }
-            return Task.CompletedTask;
         }
     }
-
-
-
 }
-

@@ -99,7 +99,7 @@
                             </a>
                         </small>
                     </div>
-                    <button type="button" onclick="submitForm()" class="btn btn-primary btn-admin">
+                    <button type="button" onclick="submitFormEnhanced()" class="btn btn-primary btn-admin">
                         <i class="fas fa-sync me-2"></i>Đồng bộ báo cáo
                     </button>
                 </form>
@@ -115,18 +115,18 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a href="/Home/SendEmail" class="btn btn-success btn-admin" onclick="showLoading()">
+                    <button type="button" class="btn btn-success btn-admin" onclick="sendEmail()">
                         <i class="fas fa-envelope me-2"></i>Gửi Email Báo Cáo
-                    </a>
-                    <a href="/Home/SendLatestPaymentEmail" class="btn btn-outline-success btn-admin" onclick="showLoading()">
+                    </button>
+                    <button type="button" class="btn btn-outline-success btn-admin" onclick="sendLatestPaymentEmail()">
                         <i class="fas fa-paper-plane me-2"></i>Gửi Lại Email Payment
-                    </a>
-                    <a href="/Home/DownloadPayment" class="btn btn-info btn-admin" onclick="showLoading()">
+                    </button>
+                    <button type="button" class="btn btn-info btn-admin" onclick="downloadPayment()">
                         <i class="fas fa-download me-2"></i>Tải File Payment
-                    </a>
-                    <a href="/Home/UploadToSFTP" class="btn btn-warning btn-admin" onclick="showLoading()">
+                    </button>
+                    <button type="button" class="btn btn-warning btn-admin" onclick="uploadToSFTP()">
                         <i class="fas fa-upload me-2"></i>Upload Lên SFTP
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -165,13 +165,294 @@
     </div>
 </div>
 
-<script>
-function showLoading() {
-    document.getElementById('showLoadding').style.display = 'flex';
+<style>
+/* Alert Toast Styles */
+.alert-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    min-width: 350px;
+    max-width: 500px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border-left: 4px solid #007bff;
+    animation: slideInRight 0.3s ease-out;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-function submitForm() {
-    showLoading();
-    document.getElementById('formSubmitReport').submit();
+.alert-toast.alert-success {
+    border-left-color: #28a745;
+}
+
+.alert-toast.alert-danger,
+.alert-toast.alert-error {
+    border-left-color: #dc3545;
+}
+
+.alert-toast.alert-warning {
+    border-left-color: #ffc107;
+}
+
+.alert-toast.alert-system_error {
+    border-left-color: #6f42c1;
+}
+
+.alert-content {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px;
+    gap: 12px;
+}
+
+.alert-content i {
+    font-size: 20px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.alert-toast.alert-success i {
+    color: #28a745;
+}
+
+.alert-toast.alert-danger i,
+.alert-toast.alert-error i {
+    color: #dc3545;
+}
+
+.alert-toast.alert-warning i {
+    color: #ffc107;
+}
+
+.alert-toast.alert-system_error i {
+    color: #6f42c1;
+}
+
+.alert-text {
+    flex: 1;
+}
+
+.alert-message {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.alert-details {
+    color: #666;
+    font-size: 13px;
+    line-height: 1.3;
+    margin-top: 4px;
+}
+
+.alert-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.alert-close:hover {
+    background: #f5f5f5;
+    color: #666;
+}
+
+@@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Loading Overlay Styles */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.loading-content {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+}
+
+.loading-spinner {
+    margin-bottom: 20px;
+}
+
+.loading-title {
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.loading-message {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.loading-progress {
+    width: 100%;
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    border-radius: 2px;
+    animation: progressAnimation 2s ease-in-out infinite;
+}
+
+@@keyframes progressAnimation {
+    0% { width: 0%; }
+    50% { width: 70%; }
+    100% { width: 100%; }
+}
+</style>
+
+<script>
+function showLoading() {
+    var loadingDiv = document.getElementById('showLoadding');
+    if (loadingDiv) {
+        loadingDiv.style.display = 'flex';
+        setTimeout(function() {
+            loadingDiv.style.opacity = "1";
+        }, 10);
+    }
+}
+
+function showLoadingOverlay(title, message) {
+    var loadingDiv = document.getElementById('showLoadding');
+    if (loadingDiv) {
+        var titleElement = loadingDiv.querySelector('.loading-title');
+        var messageElement = loadingDiv.querySelector('.loading-message');
+        
+        if (titleElement) titleElement.textContent = title;
+        if (messageElement) messageElement.textContent = message;
+        
+        loadingDiv.style.display = "flex";
+        
+        // Add fade-in animation
+        setTimeout(function() {
+            loadingDiv.style.opacity = "1";
+        }, 10);
+    }
+}
+
+function showAlert(message, type = "info", details = null) {
+    // Remove existing alerts
+    const existingAlerts = document.querySelectorAll('.alert-toast');
+    existingAlerts.forEach(alert => alert.remove());
+
+    // Create alert element
+    var alertDiv = document.createElement('div');
+    alertDiv.className = `alert-toast alert-${type}`;
+    
+    // Set icon based on type
+    let icon = 'fas fa-info-circle';
+    if (type === 'success') icon = 'fas fa-check-circle';
+    else if (type === 'danger' || type === 'error') icon = 'fas fa-exclamation-circle';
+    else if (type === 'warning') icon = 'fas fa-exclamation-triangle';
+    else if (type === 'system_error') icon = 'fas fa-bug';
+    
+    // Create details section if provided
+    let detailsHtml = '';
+    if (details) {
+        detailsHtml = `
+            <div class="alert-details">
+                <small>${details}</small>
+            </div>
+        `;
+    }
+    
+    alertDiv.innerHTML = `
+        <div class="alert-content">
+            <i class="${icon}"></i>
+            <div class="alert-text">
+                <div class="alert-message">${message}</div>
+                ${detailsHtml}
+            </div>
+        </div>
+        <button class="alert-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    // Add to page
+    document.body.appendChild(alertDiv);
+
+    // Auto remove after 8 seconds for errors, 5 seconds for others
+    const timeout = (type === 'danger' || type === 'error' || type === 'system_error') ? 8000 : 5000;
+    setTimeout(function() {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, timeout);
+}
+
+// Enhanced submit form function
+function submitFormEnhanced() {
+    var dayReport = document.getElementById("dayReportTime").value;
+    if (dayReport.length < 1) { 
+        showAlert("Vui lòng chọn ngày báo cáo", "warning");
+        return;
+    }
+    
+    var fileTCInput = document.getElementById("fileFileTC");
+    if (fileTCInput.files.length < 1) {
+        showAlert("Vui lòng chọn file TC (File nhân viên)", "warning");
+        return;
+    }
+ 
+    var fileReportCDRInput = document.getElementById("fileFileReport");
+    if (fileReportCDRInput.files.length < 1) {
+        showAlert("Vui lòng chọn file báo cáo (File CDR)", "warning");
+        return;
+    }
+    
+    // Show loading overlay
+    showLoadingOverlay("Đang xử lý file...", "Vui lòng chờ kết quả");
+    
+    // Disable submit button
+    var submitBtn = document.querySelector('button[onclick="submitFormEnhanced()"]');
+    if (submitBtn) {
+        submitBtn.classList.add('btn-loading');
+        submitBtn.disabled = true;
+    }
+    
+    // Submit form after a short delay
+    setTimeout(function() {
+        document.getElementById('formSubmitReport').submit();
+    }, 1000);
 }
 </script>

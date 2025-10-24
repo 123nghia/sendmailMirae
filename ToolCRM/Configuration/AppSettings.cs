@@ -6,7 +6,6 @@ namespace ToolCRM.Configuration
         public EmailSettings Email { get; set; } = new();
         public PathsSettings Paths { get; set; } = new();
         public RemotePathsSettings RemotePaths { get; set; } = new();
-        public QuartzSettings Quartz { get; set; } = new();
     }
 
     public class SFTPSettings
@@ -47,10 +46,4 @@ namespace ToolCRM.Configuration
         public string CallReport { get; set; } = string.Empty;
     }
 
-    public class QuartzSettings
-    {
-        public string SendMailCron { get; set; } = string.Empty;
-        public string DownloadFileCron { get; set; } = string.Empty;
-        public string UploadFileCron { get; set; } = string.Empty;
-    }
 }

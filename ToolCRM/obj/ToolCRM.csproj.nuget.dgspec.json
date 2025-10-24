@@ -50,25 +50,9 @@
               "target": "Package",
               "version": "[4.8.0, )"
             },
-            "Microsoft.Extensions.Hosting": {
-              "target": "Package",
-              "version": "[7.0.1, )"
-            },
             "MimeKit": {
               "target": "Package",
               "version": "[4.8.0, )"
-            },
-            "Quartz": {
-              "target": "Package",
-              "version": "[3.8.1, )"
-            },
-            "Quartz.Extensions.DependencyInjection": {
-              "target": "Package",
-              "version": "[3.8.1, )"
-            },
-            "Quartz.Extensions.Hosting": {
-              "target": "Package",
-              "version": "[3.8.1, )"
             },
             "SSH.NET": {
               "target": "Package",

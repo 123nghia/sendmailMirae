@@ -22,6 +22,23 @@ namespace ToolCRM.Controllers
         {
             try
             {
+                // Check SFTP connection first
+                var connectionStatus = await _sftpService.TestConnectionAsync();
+                ViewBag.ConnectionStatus = connectionStatus;
+                
+                if (!connectionStatus.IsConnected)
+                {
+                    ViewBag.ErrorMessage = $"❌ Không thể kết nối SFTP Server!\n\n" +
+                                         $"Host: {_appSettings.SFTP.Host}\n" +
+                                         $"Port: {_appSettings.SFTP.Port}\n" +
+                                         $"User: {_appSettings.SFTP.Username}\n\n" +
+                                         $"Lỗi: {connectionStatus.ErrorMessage}";
+                    ViewBag.SftpHost = _appSettings.SFTP.Host;
+                    ViewBag.SftpPort = _appSettings.SFTP.Port;
+                    ViewBag.Username = _appSettings.SFTP.Username;
+                    return View();
+                }
+
                 if (string.IsNullOrEmpty(path) || path == "/")
                 {
                     path = _appSettings.RemotePaths.Payment; // Default to payment folder
@@ -40,7 +57,15 @@ namespace ToolCRM.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error listing SFTP directory: {Path}", path);
-                ViewBag.ErrorMessage = $"Lỗi khi kết nối SFTP: {ex.Message}";
+                ViewBag.ConnectionStatus = new { IsConnected = false, ErrorMessage = ex.Message };
+                ViewBag.ErrorMessage = $"❌ Lỗi khi kết nối SFTP!\n\n" +
+                                     $"Host: {_appSettings.SFTP.Host}\n" +
+                                     $"Port: {_appSettings.SFTP.Port}\n" +
+                                     $"User: {_appSettings.SFTP.Username}\n\n" +
+                                     $"Lỗi: {ex.Message}";
+                ViewBag.SftpHost = _appSettings.SFTP.Host;
+                ViewBag.SftpPort = _appSettings.SFTP.Port;
+                ViewBag.Username = _appSettings.SFTP.Username;
                 return View();
             }
         }

@@ -134,3 +134,28 @@ body {
 .loading-spinner .spinner-border {
   animation: pulse 2s ease-in-out infinite;
 }
+
+/* Alert styles */
+.alert-success {
+  background-color: #d1edff;
+  border-color: #0dcaf0;
+  color: #055160;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  border-color: #dc3545;
+  color: #721c24;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffc107;
+  color: #664d03;
+}
+
+.alert-info {
+  background-color: #d1ecf1;
+  border-color: #0dcaf0;
+  color: #055160;
+}

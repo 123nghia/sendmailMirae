@@ -4,7 +4,7 @@ using System.Diagnostics;
 using ToolCRM.Business;
 using ToolCRM.Configuration;
 using ToolCRM.Models;
-using Quartz;
+using ToolCRM.Services;
 
 namespace ToolCRM.Controllers
 {
@@ -12,52 +12,93 @@ namespace ToolCRM.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly AppSettings _appSettings;
-        private readonly ISchedulerFactory _schedulerFactory;
+        private readonly LoggingService loggingService;
         private HanldeBusiness bussines;
 
-        public HomeController(ILogger<HomeController> logger, IOptions<AppSettings> appSettings, ISchedulerFactory schedulerFactory)
+        public HomeController(ILogger<HomeController> logger, IOptions<AppSettings> appSettings)
         {
             _logger = logger;
             _appSettings = appSettings.Value;
-            _schedulerFactory = schedulerFactory;
-            bussines = new HanldeBusiness(_appSettings, _schedulerFactory);
+            loggingService = new LoggingService(_appSettings);
+            bussines = new HanldeBusiness(_appSettings);
+        }
+
+        public IActionResult Dashboard()
+        {
+            return View("Index");
         }
 
         public async Task<IActionResult> Index(InputRequest? request)
         {
+            // If no request or no DayReport, show the upload form
             if (request == null || request.DayReport.HasValue == false)
             {
-                return View();
+                return View("Index");
             }
 
             // Validate file uploads
             if (request.FileTC == null || request.FileTC.Length == 0)
             {
-                ViewBag.ErrorMessage = "Vui lòng chọn file TC (File nhân viên)";
+                ViewBag.ErrorMessage = "❌ Lỗi: Vui lòng chọn file TC (File nhân viên)";
+                ViewBag.ErrorType = "VALIDATION_ERROR";
+                ViewBag.ErrorDetails = "File TC không được để trống";
                 return View("IndexError");
             }
 
             if (request.FileReport == null || request.FileReport.Length == 0)
             {
-                ViewBag.ErrorMessage = "Vui lòng chọn file báo cáo (File CDR)";
+                ViewBag.ErrorMessage = "❌ Lỗi: Vui lòng chọn file báo cáo (File CDR)";
+                ViewBag.ErrorType = "VALIDATION_ERROR";
+                ViewBag.ErrorDetails = "File báo cáo không được để trống";
                 return View("IndexError");
             }
 
             try
             {
+                // Log operation start
+                await loggingService.LogOperation("FILE_UPLOAD", "Upload và xử lý file", true, 
+                    $"File TC: {request.FileTC.FileName}, File Report: {request.FileReport.FileName}, Date: {request.DayReport}");
+
                 var result = await bussines.MoveFileInputFormAsync(request);
 
                 if(string.IsNullOrEmpty(result))
                 {
+                    ViewBag.Message = "✅ Xử lý file thành công!";
+                    ViewBag.MessageType = "SUCCESS";
+                    ViewBag.MessageDetails = "File đã được xử lý và upload thành công";
+                    await loggingService.LogOperation("FILE_UPLOAD", "Upload và xử lý file", true, "Thành công hoàn toàn");
                     return View("Success");
                 }
-                ViewBag.ErrorMessage = result;
+                
+                // Check if it's a warning (contains "Cảnh báo")
+                if (result.Contains("Cảnh báo"))
+                {
+                    ViewBag.Message = "⚠️ " + result;
+                    ViewBag.MessageType = "WARNING";
+                    ViewBag.MessageDetails = "File đã được xử lý nhưng có một số cảnh báo";
+                    await loggingService.LogOperation("FILE_UPLOAD", "Upload và xử lý file", true, result);
+                    return View("Success");
+                }
+                
+                // It's an actual error
+                ViewBag.ErrorMessage = "❌ " + result;
+                ViewBag.ErrorType = "PROCESSING_ERROR";
+                ViewBag.ErrorDetails = "Lỗi trong quá trình xử lý file";
+                await loggingService.LogOperation("FILE_UPLOAD", "Upload và xử lý file", false, result);
                 return View("IndexError");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing file upload");
-                ViewBag.ErrorMessage = $"Lỗi khi xử lý file: {ex.Message}";
+                
+                // Log detailed error
+                await loggingService.LogError("FILE_UPLOAD_ERROR", ex.Message, ex.StackTrace, 
+                    $"File TC: {request.FileTC?.FileName}, File Report: {request.FileReport?.FileName}, Date: {request.DayReport}");
+                
+                ViewBag.ErrorMessage = $"❌ Lỗi hệ thống: {ex.Message}";
+                ViewBag.ErrorType = "SYSTEM_ERROR";
+                ViewBag.ErrorDetails = "Lỗi không mong muốn trong hệ thống";
+                ViewBag.StackTrace = ex.StackTrace;
                 return View("IndexError");
             }
         }
@@ -72,63 +113,171 @@ namespace ToolCRM.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
+        [HttpPost]
         public async Task<IActionResult> SendEmail()
         {
             try
             {
-                await bussines.SendEmailReport();
-                ViewBag.Message = "Email đã được gửi thành công!";
-                return View("Success");
+                await loggingService.LogOperation("EMAIL_SEND", "Gửi email báo cáo", true, "Bắt đầu gửi email");
+                var result = await bussines.SendEmailReport();
+                
+                if (string.IsNullOrEmpty(result))
+                {
+                    await loggingService.LogOperation("EMAIL_SEND", "Gửi email báo cáo", true, "Thành công");
+                    return Json(new { 
+                        success = true, 
+                        message = "✅ Gửi email báo cáo thành công!",
+                        messageType = "SUCCESS",
+                        details = "Email đã được gửi thành công"
+                    });
+                }
+                else
+                {
+                    await loggingService.LogOperation("EMAIL_SEND", "Gửi email báo cáo", false, result);
+                    return Json(new { 
+                        success = false, 
+                        message = "❌ " + result,
+                        messageType = "ERROR",
+                        details = "Lỗi khi gửi email báo cáo"
+                    });
+                }
             }
             catch (Exception ex)
             {
-                ViewBag.ErrorMessage = $"Lỗi khi gửi email: {ex.Message}";
-                return View("IndexError");
+                _logger.LogError(ex, "Error sending email");
+                await loggingService.LogError("EMAIL_SEND_ERROR", ex.Message, ex.StackTrace, "Gửi email báo cáo");
+                return Json(new { 
+                    success = false, 
+                    message = $"❌ Lỗi hệ thống khi gửi email: {ex.Message}",
+                    messageType = "SYSTEM_ERROR",
+                    details = "Lỗi không mong muốn trong hệ thống"
+                });
             }
         }
 
+        [HttpPost]
         public async Task<IActionResult> SendLatestPaymentEmail()
         {
             try
             {
-                await bussines.SendLatestPaymentEmail();
-                ViewBag.Message = "Email gửi lại với file payment mới nhất thành công!";
-                return View("Success");
+                await loggingService.LogOperation("EMAIL_SEND", "Gửi email payment", true, "Bắt đầu gửi email payment");
+                var result = await bussines.SendLatestPaymentEmail();
+                
+                if (string.IsNullOrEmpty(result))
+                {
+                    await loggingService.LogOperation("EMAIL_SEND", "Gửi email payment", true, "Thành công");
+                    return Json(new { 
+                        success = true, 
+                        message = "✅ Gửi email payment thành công!",
+                        messageType = "SUCCESS",
+                        details = "Email payment đã được gửi thành công"
+                    });
+                }
+                else
+                {
+                    await loggingService.LogOperation("EMAIL_SEND", "Gửi email payment", false, result);
+                    return Json(new { 
+                        success = false, 
+                        message = "❌ " + result,
+                        messageType = "ERROR",
+                        details = "Lỗi khi gửi email payment"
+                    });
+                }
             }
             catch (Exception ex)
             {
-                ViewBag.ErrorMessage = $"Lỗi khi gửi lại email: {ex.Message}";
-                return View("IndexError");
+                _logger.LogError(ex, "Error sending latest payment email");
+                await loggingService.LogError("EMAIL_SEND_ERROR", ex.Message, ex.StackTrace, "Gửi email payment");
+                return Json(new { 
+                    success = false, 
+                    message = $"❌ Lỗi hệ thống khi gửi email payment: {ex.Message}",
+                    messageType = "SYSTEM_ERROR",
+                    details = "Lỗi không mong muốn trong hệ thống"
+                });
             }
         }
 
+        [HttpPost]
         public async Task<IActionResult> DownloadPayment()
         {
             try
             {
-                await bussines.DownloadPaymentFile();
-                ViewBag.Message = "File payment đã được tải về thành công!";
-                return View("Success");
+                await loggingService.LogOperation("FILE_DOWNLOAD", "Tải file payment", true, "Bắt đầu tải file payment");
+                var result = await bussines.DownloadPaymentFile();
+                
+                if (string.IsNullOrEmpty(result))
+                {
+                    await loggingService.LogOperation("FILE_DOWNLOAD", "Tải file payment", true, "Thành công");
+                    return Json(new { 
+                        success = true, 
+                        message = "✅ Tải file payment thành công!",
+                        messageType = "SUCCESS",
+                        details = "File payment đã được tải về thành công"
+                    });
+                }
+                else
+                {
+                    await loggingService.LogOperation("FILE_DOWNLOAD", "Tải file payment", false, result);
+                    return Json(new { 
+                        success = false, 
+                        message = "❌ " + result,
+                        messageType = "ERROR",
+                        details = "Lỗi khi tải file payment"
+                    });
+                }
             }
             catch (Exception ex)
             {
-                ViewBag.ErrorMessage = $"Lỗi khi tải file payment: {ex.Message}";
-                return View("IndexError");
+                _logger.LogError(ex, "Error downloading payment file");
+                await loggingService.LogError("FILE_DOWNLOAD_ERROR", ex.Message, ex.StackTrace, "Tải file payment");
+                return Json(new { 
+                    success = false, 
+                    message = $"❌ Lỗi hệ thống khi tải file payment: {ex.Message}",
+                    messageType = "SYSTEM_ERROR",
+                    details = "Lỗi không mong muốn trong hệ thống"
+                });
             }
         }
 
+        [HttpPost]
         public async Task<IActionResult> UploadToSFTP()
         {
             try
             {
-                await bussines.UploadFilesToSFTP();
-                ViewBag.Message = "File đã được upload lên SFTP thành công!";
-                return View("Success");
+                await loggingService.LogOperation("SFTP_UPLOAD", "Upload lên SFTP", true, "Bắt đầu upload lên SFTP");
+                var result = await bussines.UploadFilesToSFTP();
+                
+                if (string.IsNullOrEmpty(result))
+                {
+                    await loggingService.LogOperation("SFTP_UPLOAD", "Upload lên SFTP", true, "Thành công");
+                    return Json(new { 
+                        success = true, 
+                        message = "✅ Upload lên SFTP thành công!",
+                        messageType = "SUCCESS",
+                        details = "File đã được upload lên SFTP thành công"
+                    });
+                }
+                else
+                {
+                    await loggingService.LogOperation("SFTP_UPLOAD", "Upload lên SFTP", false, result);
+                    return Json(new { 
+                        success = false, 
+                        message = "❌ " + result,
+                        messageType = "ERROR",
+                        details = "Lỗi khi upload lên SFTP"
+                    });
+                }
             }
             catch (Exception ex)
             {
-                ViewBag.ErrorMessage = $"Lỗi khi upload file: {ex.Message}";
-                return View("IndexError");
+                _logger.LogError(ex, "Error uploading to SFTP");
+                await loggingService.LogError("SFTP_UPLOAD_ERROR", ex.Message, ex.StackTrace, "Upload lên SFTP");
+                return Json(new { 
+                    success = false, 
+                    message = $"❌ Lỗi hệ thống khi upload lên SFTP: {ex.Message}",
+                    messageType = "SYSTEM_ERROR",
+                    details = "Lỗi không mong muốn trong hệ thống"
+                });
             }
         }
 

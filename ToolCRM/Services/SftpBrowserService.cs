@@ -14,6 +14,48 @@ namespace ToolCRM.Services
             _appSettings = appSettings.Value;
         }
 
+        public async Task<dynamic> TestConnectionAsync()
+        {
+            try
+            {
+                using var sftp = new SftpClient(_appSettings.SFTP.Host, _appSettings.SFTP.Port, _appSettings.SFTP.Username, _appSettings.SFTP.Password);
+                sftp.ConnectionInfo.Timeout = TimeSpan.FromSeconds(5); // Giảm timeout xuống 5 giây
+                
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                
+                await Task.Run(() => sftp.Connect(), cts.Token);
+                
+                if (sftp.IsConnected)
+                {
+                    sftp.Disconnect();
+                    return new { IsConnected = true, ErrorMessage = "" };
+                }
+                else
+                {
+                    return new { IsConnected = false, ErrorMessage = "Không thể kết nối đến SFTP server" };
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                return new { IsConnected = false, ErrorMessage = "Timeout: Không thể kết nối SFTP trong 5 giây" };
+            }
+            catch (Exception ex)
+            {
+                return new { IsConnected = false, ErrorMessage = GetFriendlyErrorMessage(ex) };
+            }
+        }
+
+        private string GetFriendlyErrorMessage(Exception ex)
+        {
+            return ex switch
+            {
+                System.Net.Sockets.SocketException => "Lỗi kết nối mạng: Không thể kết nối đến server SFTP",
+                Renci.SshNet.Common.SshConnectionException => "Lỗi xác thực: Sai thông tin đăng nhập SFTP",
+                Renci.SshNet.Common.SshOperationTimeoutException => "Timeout: Server SFTP không phản hồi",
+                _ => $"Lỗi SFTP: {ex.Message}"
+            };
+        }
+
         public async Task<SftpDirectoryModel> BrowseDirectoryAsync(string path = "/")
         {
             var result = new SftpDirectoryModel
