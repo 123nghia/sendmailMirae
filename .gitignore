@@ -540,3 +540,6 @@ temp/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# ASP.NET Core launch settings (local development)
+Properties/launchSettings.json

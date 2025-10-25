@@ -1,14 +1,20 @@
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/appsettings.Development.json
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/appsettings.json
+/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/DebugDemo/bin/Debug/net7.0/DebugDemo.deps.json
+/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/DebugDemo/bin/Debug/net7.0/DebugDemo.runtimeconfig.json
+/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/DebugDemo/obj/DebugDemo.csproj.nuget.dgspec.json
+/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/DebugDemo/obj/project.assets.json
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/ToolCRM.staticwebassets.runtime.json
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/ToolCRM
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/ToolCRM.deps.json
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/ToolCRM.runtimeconfig.json
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/ToolCRM.dll
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/ToolCRM.pdb
+/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/BouncyCastle.Cryptography.dll
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/EPPlus.dll
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/EPPlus.Interfaces.dll
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/EPPlus.System.Drawing.dll
+/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/MailKit.dll
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/Microsoft.Extensions.Configuration.dll
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/Microsoft.Extensions.Configuration.Abstractions.dll
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/Microsoft.Extensions.Configuration.FileExtensions.dll
@@ -19,6 +25,7 @@
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/Microsoft.Extensions.Primitives.dll
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/Microsoft.IO.RecyclableMemoryStream.dll
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/Microsoft.Win32.SystemEvents.dll
+/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/MimeKit.dll
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/Renci.SshNet.dll
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/System.Drawing.Common.dll
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/System.Formats.Asn1.dll
@@ -32,8 +39,6 @@
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/runtimes/browser/lib/net7.0/System.Text.Encodings.Web.dll
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/obj/Debug/net7.0/ToolCRM.csproj.AssemblyReference.cache
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/obj/Debug/net7.0/ToolCRM.GeneratedMSBuildEditorConfig.editorconfig
-/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/obj/Debug/net7.0/ToolCRM.AssemblyInfoInputs.cache
-/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/obj/Debug/net7.0/ToolCRM.AssemblyInfo.cs
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/obj/Debug/net7.0/ToolCRM.csproj.CoreCompileInputs.cache
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/obj/Debug/net7.0/ToolCRM.MvcApplicationPartsAssemblyInfo.cache
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/obj/Debug/net7.0/ToolCRM.RazorAssemblyInfo.cache
@@ -54,6 +59,3 @@
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/obj/Debug/net7.0/ToolCRM.pdb
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/obj/Debug/net7.0/ToolCRM.genruntimeconfig.cache
 /home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/obj/Debug/net7.0/ref/ToolCRM.dll
-/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/BouncyCastle.Cryptography.dll
-/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/MailKit.dll
-/home/truongnghia/Desktop/email/sendmailMirae/ToolCRM/bin/Debug/net7.0/MimeKit.dll

@@ -29,13 +29,22 @@ namespace ToolCRM.Business
 
         public async Task<string> MoveFileInputFormAsync(InputRequest request)
         {
+            Console.WriteLine("🚀 Bắt đầu xử lý file input form...");
+            
             var fileTC = request.FileTC;
             var fileReprort = request.FileReport;
             var dayReport = request.DayReport;
             var filePath = _appSettings.Paths.ToolCRMSourceFile;
             var dateGet = (dayReport ?? DateTime.Now).ToString("yyyyMMdd");
+            var tcFilePath = Path.Combine(filePath, "tc_" + dateGet + ".xlsx");
             var workingTimeReportFile = Path.Combine(filePath, "working_time_" + dateGet + ".xlsx");
             var reprortCDRFileName = Path.Combine(filePath, "call_report_" + dateGet + ".xlsx");
+            
+            Console.WriteLine($"📅 Ngày báo cáo: {dateGet}");
+            Console.WriteLine($"📁 Đường dẫn file: {filePath}");
+            Console.WriteLine($"📄 File TC: {tcFilePath}");
+            Console.WriteLine($"📄 File Working Time: {workingTimeReportFile}");
+            Console.WriteLine($"📄 File Call Report: {reprortCDRFileName}");
             
             var processSteps = new List<string>();
             var errors = new List<string>();
@@ -66,69 +75,93 @@ namespace ToolCRM.Business
                 }
                 
                 // Step 3: Save FileTC
+                Console.WriteLine("📤 Bước 3: Lưu file TC...");
                 if (fileTC != null && fileTC.Length > 0)
                 {
-                    using (var stream = System.IO.File.Create(workingTimeReportFile))
+                    Console.WriteLine($"📄 File TC size: {fileTC.Length} bytes");
+                    using (var stream = System.IO.File.Create(tcFilePath))
                     {
                         await fileTC.CopyToAsync(stream);
                     }
-                    processSteps.Add("✓ Lưu file TC (Working Time)");
+                    Console.WriteLine($"✅ Đã lưu file TC: {tcFilePath}");
+                    processSteps.Add("✓ Lưu file TC");
                 }
                 else
                 {
+                    Console.WriteLine("❌ File TC không hợp lệ hoặc rỗng");
                     errors.Add("❌ File TC không hợp lệ hoặc rỗng");
-                    await loggingService.LogFileProcessing("working_time_" + dateGet + ".xlsx", "FileUpload", false, "File TC không hợp lệ hoặc rỗng");
+                    await loggingService.LogFileProcessing("tc_" + dateGet + ".xlsx", "FileUpload", false, "File TC không hợp lệ hoặc rỗng");
                     return string.Join("; ", errors);
                 }
 
                 // Step 4: Save FileReport
+                Console.WriteLine("📤 Bước 4: Lưu file Report...");
                 if (fileReprort != null && fileReprort.Length > 0)
                 {
+                    Console.WriteLine($"📄 File Report size: {fileReprort.Length} bytes");
                     using (var stream1 = System.IO.File.Create(reprortCDRFileName))
                     {
                         await fileReprort.CopyToAsync(stream1);
                     }
+                    Console.WriteLine($"✅ Đã lưu file Report: {reprortCDRFileName}");
                     processSteps.Add("✓ Lưu file báo cáo (Call Report)");
                 }
                 else
                 {
-                    errors.Add("❌ File báo cáo không hợp lệ hoặc rỗng");
-                    await loggingService.LogFileProcessing("call_report_" + dateGet + ".xlsx", "FileUpload", false, "File báo cáo không hợp lệ hoặc rỗng");
-                    return string.Join("; ", errors);
+                    Console.WriteLine("⚠️ File Report không có - bỏ qua bước này");
+                    processSteps.Add("⚠️ Không có file Report - bỏ qua");
+                    // Không return nữa, tiếp tục xử lý
                 }
 
                 // Step 5: Validate files
-                if (!File.Exists(workingTimeReportFile) || new FileInfo(workingTimeReportFile).Length == 0)
+                Console.WriteLine("🔍 Bước 5: Xác thực file TC...");
+                if (!File.Exists(tcFilePath) || new FileInfo(tcFilePath).Length == 0)
                 {
+                    Console.WriteLine("❌ File TC không tồn tại hoặc rỗng sau khi lưu");
                     errors.Add("❌ File TC không tồn tại hoặc rỗng sau khi lưu");
-                    await loggingService.LogFileProcessing("working_time_" + dateGet + ".xlsx", "FileValidation", false, "File không tồn tại hoặc rỗng");
+                    await loggingService.LogFileProcessing("tc_" + dateGet + ".xlsx", "FileValidation", false, "File không tồn tại hoặc rỗng");
                     return string.Join("; ", errors);
                 }
                 else
                 {
+                    Console.WriteLine("✅ File TC hợp lệ");
                     processSteps.Add("✓ Xác thực file TC");
                 }
 
-                if (!File.Exists(reprortCDRFileName) || new FileInfo(reprortCDRFileName).Length == 0)
+                // Validate file Report (optional)
+                if (fileReprort != null && fileReprort.Length > 0)
                 {
-                    errors.Add("❌ File báo cáo không tồn tại hoặc rỗng sau khi lưu");
-                    await loggingService.LogFileProcessing("call_report_" + dateGet + ".xlsx", "FileValidation", false, "File không tồn tại hoặc rỗng");
-                    return string.Join("; ", errors);
+                    if (!File.Exists(reprortCDRFileName) || new FileInfo(reprortCDRFileName).Length == 0)
+                    {
+                        Console.WriteLine("❌ File báo cáo không tồn tại hoặc rỗng sau khi lưu");
+                        errors.Add("❌ File báo cáo không tồn tại hoặc rỗng sau khi lưu");
+                        await loggingService.LogFileProcessing("call_report_" + dateGet + ".xlsx", "FileValidation", false, "File không tồn tại hoặc rỗng");
+                        return string.Join("; ", errors);
+                    }
+                    else
+                    {
+                        Console.WriteLine("✅ File Report hợp lệ");
+                        processSteps.Add("✓ Xác thực file báo cáo");
+                    }
                 }
                 else
                 {
-                    processSteps.Add("✓ Xác thực file báo cáo");
+                    Console.WriteLine("⚠️ Không có file Report để xác thực");
                 }
                 
                 // Step 6: Process files
+                Console.WriteLine("⚙️ Bước 6: Xử lý file Working Time...");
                 try
                 {
-                    handleFileWorkingTime.OutputFileWorkingTime();
+                    Console.WriteLine($"📖 Đọc dữ liệu từ file TC: {tcFilePath}");
+                    handleFileWorkingTime.OutputFileWorkingTime(tcFilePath);
+                    Console.WriteLine($"✅ Đã tạo file Working Time: {workingTimeReportFile}");
                     processSteps.Add("✓ Xử lý file Working Time");
                     await loggingService.LogFileProcessing("working_time_" + dateGet + ".xlsx", "FileProcessing", true);
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine($"❌ Lỗi khi xử lý file Working Time: {ex.Message}");
                     errors.Add($"❌ Lỗi khi xử lý file Working Time: {ex.Message}");
                     await loggingService.LogFileProcessing("working_time_" + dateGet + ".xlsx", "FileProcessing", false, ex.Message);
                 }
