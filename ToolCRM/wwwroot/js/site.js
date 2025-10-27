@@ -144,7 +144,8 @@ async function sendEmail() {
         }
     } catch (error) {
         hideLoadingOverlay();
-        showAlert("Lỗi kết nối: " + error.message, "danger");
+        const errorDetails = error.stack ? `Stack: ${error.stack}` : `Message: ${error.message || 'Unknown error'}`;
+        showAlert("Lỗi kết nối: " + error.message, "danger", errorDetails);
     }
 }
 
@@ -170,7 +171,8 @@ async function sendLatestPaymentEmail() {
         }
     } catch (error) {
         hideLoadingOverlay();
-        showAlert("Lỗi kết nối: " + error.message, "danger");
+        const errorDetails = error.stack ? `Stack: ${error.stack}` : `Message: ${error.message || 'Unknown error'}`;
+        showAlert("Lỗi gửi email payment: " + error.message, "danger", errorDetails);
     }
 }
 
@@ -196,7 +198,8 @@ async function downloadPayment() {
         }
     } catch (error) {
         hideLoadingOverlay();
-        showAlert("Lỗi kết nối: " + error.message, "danger");
+        const errorDetails = error.stack ? `Stack: ${error.stack}` : `Message: ${error.message || 'Unknown error'}`;
+        showAlert("Lỗi tải file payment: " + error.message, "danger", errorDetails);
     }
 }
 
@@ -222,6 +225,7 @@ async function uploadToSFTP() {
         }
     } catch (error) {
         hideLoadingOverlay();
-        showAlert("Lỗi kết nối: " + error.message, "danger");
+        const errorDetails = error.stack ? `Stack: ${error.stack}` : `Message: ${error.message || 'Unknown error'}`;
+        showAlert("Lỗi upload SFTP: " + error.message, "danger", errorDetails);
     }
 }
