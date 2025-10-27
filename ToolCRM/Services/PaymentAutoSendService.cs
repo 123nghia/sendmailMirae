@@ -49,30 +49,41 @@ namespace ToolCRM.Services
                     sftp.Connect();
 
                     var files = sftp.ListDirectory(_appSettings.Sftp.PaymentFolder);
-                    var paymentFiles = files.Where(f => f.IsRegularFile && f.Name.StartsWith("payment_")).ToList();
-
-                    foreach (var file in paymentFiles)
+                    
+                    // Lọc file payment của ngày hôm nay
+                    var today = DateTime.Now.Date;
+                    var todayPattern = today.ToString("yyyyMMdd");
+                    var todayFile = files.FirstOrDefault(f => f.IsRegularFile && 
+                                                                   f.Name.StartsWith("payment_") && 
+                                                                   f.Name.Contains(todayPattern));
+                    
+                    if (todayFile != null)
                     {
-                        var fileKey = GetFileKey(file);
+                        var fileKey = GetFileKey(todayFile);
                         
                         // Kiểm tra xem file đã được gửi chưa
                         if (!_sentFiles.ContainsKey(fileKey))
                         {
-                            _logger.LogInformation($"New payment file detected: {file.Name}");
+                            _logger.LogInformation($"New payment file detected for today: {todayFile.Name}");
                             
                             // Download và gửi file
-                            var success = await DownloadAndSendPaymentFile(sftp, file);
+                            var success = await DownloadAndSendPaymentFile(sftp, todayFile);
                             
                             if (success)
                             {
                                 _sentFiles[fileKey] = true;
                                 SaveSentFileToHistory(fileKey);
-                                _logger.LogInformation($"Payment file sent successfully: {file.Name}");
-                                
-                                // Đợi 30 giây giữa mỗi email để tránh bị throttle
-                                await Task.Delay(TimeSpan.FromSeconds(30));
+                                _logger.LogInformation($"Payment file sent successfully: {todayFile.Name}");
                             }
                         }
+                        else
+                        {
+                            _logger.LogInformation($"Payment file for today already sent: {todayFile.Name}");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"No payment file found for today ({todayPattern})");
                     }
 
                     sftp.Disconnect();
