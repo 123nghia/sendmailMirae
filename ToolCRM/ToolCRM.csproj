@@ -5,13 +5,13 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <NoWarn>CS8618;CS8600;CS8601;CS8602;CS8604;CS8629;CS1998;CS0219;CS0168</NoWarn>
+    <NoWarn>CS8618;CS8600;CS8601;CS8602;CS8604;CS8629;CS1998;CS0219;CS0168;CS8632</NoWarn>
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EPPlus" Version="7.2.0" />
-    <PackageReference Include="EPPlus.Interfaces" Version="7.2.0" />
+    <PackageReference Include="EPPlus" Version="7.5.0" />
+    <PackageReference Include="EPPlus.Interfaces" Version="7.5.0" />
     <PackageReference Include="SSH.NET" Version="2024.2.0" />
     <PackageReference Include="MailKit" Version="4.8.0" />
   </ItemGroup>

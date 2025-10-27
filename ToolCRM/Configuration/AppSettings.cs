@@ -23,6 +23,7 @@ namespace ToolCRM.Configuration
         public string Password { get; set; } = string.Empty;
         public string WorkingTimeFolder { get; set; } = string.Empty;
         public string CallReportFolder { get; set; } = string.Empty;
+        public string PaymentFolder { get; set; } = string.Empty;
     }
 
     public class EmailSettings

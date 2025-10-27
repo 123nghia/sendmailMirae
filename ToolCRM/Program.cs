@@ -11,6 +11,9 @@ builder.Services.Configure<ToolCRM.Configuration.AppSettings>(
 builder.Services.AddScoped<ToolCRM.Business.Sendmail>();
 builder.Services.AddScoped<ToolCRM.Business.HanldeBusiness>();
 
+// Register background service
+builder.Services.AddHostedService<ToolCRM.Services.PaymentAutoSendService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

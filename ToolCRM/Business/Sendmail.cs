@@ -137,5 +137,124 @@ namespace ToolCRM.Business
                 sftp.Dispose();
             }
         }
+
+        public async Task<bool> SendLatestPaymentFileAsync()
+        {
+            try
+            {
+                var remoteDirectory = "/uploads/PAYMENT";
+                var localDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Temp");
+                
+                if (!Directory.Exists(localDirectory))
+                {
+                    Directory.CreateDirectory(localDirectory);
+                }
+
+                Renci.SshNet.Sftp.ISftpFile latestFile = null;
+                using (var sftp = new Renci.SshNet.SftpClient(_appSettings.Sftp.Host, _appSettings.Sftp.Port, _appSettings.Sftp.Username, _appSettings.Sftp.Password))
+                {
+                    sftp.ConnectionInfo.Timeout = TimeSpan.FromMinutes(2);
+                    sftp.Connect();
+                    var files = sftp.ListDirectory(remoteDirectory);
+
+                    // Tìm file payment mới nhất
+                    foreach (var file in files.Where(f => f.IsRegularFile && f.Name.StartsWith("payment_")))
+                    {
+                        if (latestFile == null || file.LastWriteTime > latestFile.LastWriteTime)
+                        {
+                            latestFile = file;
+                        }
+                    }
+
+                    if (latestFile == null)
+                    {
+                        Console.WriteLine("No payment file found in SFTP server.");
+                        return false;
+                    }
+
+                    // Download file
+                    var localFilePath = Path.Combine(localDirectory, latestFile.Name);
+                    using (Stream fileStream = File.Create(localFilePath))
+                    {
+                        sftp.DownloadFile(remoteDirectory + "/" + latestFile.Name, fileStream);
+                    }
+
+                    sftp.Disconnect();
+                    sftp.Dispose();
+
+                    // Gửi email với file đã download
+                    var result = await SendPaymentFileEmail(localFilePath, latestFile.Name, latestFile.LastWriteTime);
+                    
+                    // Xóa file tạm
+                    if (File.Exists(localFilePath))
+                    {
+                        File.Delete(localFilePath);
+                    }
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error sending latest payment file: " + ex.Message);
+                return false;
+            }
+        }
+
+        public async Task<bool> SendPaymentFileEmail(string filePath, string fileName, DateTime lastModified)
+        {
+            try
+            {
+                var monthtext = DateTime.Now.ToString("yyyy.MM.dd");
+                var subjectmail = "[" + monthtext + "] báo cáo payment hàng ngày";
+                var message = new MimeMessage();
+                var titleMail = "File PAYMENT ngày " + lastModified.ToString("dd.MM.yyyy");
+
+                message.From.Add(new MailboxAddress(titleMail, _appSettings.Email.Username));
+                var recipientAddress = _appSettings.Email.Recipient;
+                message.To.Add(new MailboxAddress("", recipientAddress));
+                message.Subject = subjectmail;
+
+                var multipart = new Multipart("mixed");
+                multipart.Add(new TextPart(MimeKit.Text.TextFormat.Html)
+                {
+                    Text = "Dear Admin <br><br>" +
+                    "Dữ liệu payment hàng ngày của (đối tác) gửi qua <br><br>" +
+                    "Dữ liệu được tính đến thời điểm gửi mail." +
+                    "<br><br>Thanks, Admin"
+                });
+
+                // Attach file
+                var stream = File.OpenRead(filePath);
+                var attachment = new MimePart("application",
+                    "vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                {
+                    Content = new MimeContent(stream, ContentEncoding.Default),
+                    ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
+                    ContentTransferEncoding = ContentEncoding.Binary,
+                    FileName = fileName
+                };
+
+                multipart.Add(attachment);
+                message.Body = multipart;
+
+                using (var client = new SmtpClient())
+                {
+                    client.Connect(_appSettings.Email.SmtpHost, _appSettings.Email.SmtpPort, MailKit.Security.SecureSocketOptions.Auto);
+                    client.Authenticate(_appSettings.Email.Username, _appSettings.Email.Password);
+                    client.Send(message);
+                    client.Disconnect(true);
+                    Console.WriteLine("Payment file sent successfully: " + fileName);
+                }
+
+                stream.Dispose();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error sending payment file email: " + ex.Message);
+                return false;
+            }
+        }
     }
 }

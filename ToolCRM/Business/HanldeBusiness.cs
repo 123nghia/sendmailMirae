@@ -2,6 +2,7 @@
 using ToolCRM.Models;
 using ToolCRM.Configuration;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 namespace ToolCRM.Business
 {
@@ -14,12 +15,12 @@ namespace ToolCRM.Business
         
         private readonly AppSettings _appSettings;
         
-        public HanldeBusiness(IOptions<AppSettings> appSettings)
+        public HanldeBusiness(IOptions<AppSettings> appSettings, ILogger<ServiceSFCP> logger)
         {
             _appSettings = appSettings.Value;
             handleFileWorkingTime = new HandleFileWorkingTime(_appSettings);
             hanleFileExcel = new HanleFileExcel(_appSettings);
-            serviceSFCP = new ServiceSFCP(_appSettings);
+            serviceSFCP = new ServiceSFCP(_appSettings, logger);
             sendmail = new Sendmail(appSettings);
         }
 

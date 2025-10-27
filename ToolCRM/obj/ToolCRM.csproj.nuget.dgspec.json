@@ -40,11 +40,11 @@
           "dependencies": {
             "EPPlus": {
               "target": "Package",
-              "version": "[7.2.0, )"
+              "version": "[7.5.0, )"
             },
             "EPPlus.Interfaces": {
               "target": "Package",
-              "version": "[7.2.0, )"
+              "version": "[7.5.0, )"
             },
             "MailKit": {
               "target": "Package",
