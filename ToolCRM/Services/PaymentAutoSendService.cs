@@ -25,7 +25,7 @@ namespace ToolCRM.Services
                 try
                 {
                     await CheckAndSendPaymentFiles();
-                    await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken); // Kiểm tra mỗi 5 phút
+                    await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken); // Kiểm tra mỗi 10 phút
                 }
                 catch (Exception ex)
                 {
@@ -103,7 +103,7 @@ namespace ToolCRM.Services
                 var sendmail = new ToolCRM.Business.Sendmail(
                     Microsoft.Extensions.Options.Options.Create(_appSettings));
                 
-                var result = await sendmail.SendPaymentFileEmail(localFilePath, file.Name, file.LastWriteTime);
+                var result = await sendmail.SendPaymentFileEmail(localFilePath, file.Name, file.LastAccessTime);
 
                 // Xóa file tạm
                 if (File.Exists(localFilePath))
@@ -122,7 +122,8 @@ namespace ToolCRM.Services
 
         private string GetFileKey(Renci.SshNet.Sftp.ISftpFile file)
         {
-            return $"{file.Name}_{file.LastWriteTime.Ticks}";
+            // Sử dụng LastAccessTime (thời gian tạo file) thay vì LastWriteTime
+            return $"{file.Name}_{file.LastAccessTime.Ticks}";
         }
 
         private void LoadSentFilesHistory()
