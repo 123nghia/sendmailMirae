@@ -129,7 +129,13 @@ namespace ToolCRM.Services
         {
             try
             {
-                var historyFile = Path.Combine(_appSettings.FilePaths.Logs, "payment_sent_history.txt");
+                var logDirectory = Path.Combine(Directory.GetCurrentDirectory(), _appSettings.FilePaths.Logs);
+                if (!Directory.Exists(logDirectory))
+                {
+                    Directory.CreateDirectory(logDirectory);
+                }
+                
+                var historyFile = Path.Combine(logDirectory, "payment_sent_history.txt");
                 if (File.Exists(historyFile))
                 {
                     var lines = File.ReadAllLines(historyFile);
@@ -152,7 +158,13 @@ namespace ToolCRM.Services
         {
             try
             {
-                var historyFile = Path.Combine(_appSettings.FilePaths.Logs, "payment_sent_history.txt");
+                var logDirectory = Path.Combine(Directory.GetCurrentDirectory(), _appSettings.FilePaths.Logs);
+                if (!Directory.Exists(logDirectory))
+                {
+                    Directory.CreateDirectory(logDirectory);
+                }
+                
+                var historyFile = Path.Combine(logDirectory, "payment_sent_history.txt");
                 File.AppendAllText(historyFile, fileKey + Environment.NewLine);
             }
             catch (Exception ex)
