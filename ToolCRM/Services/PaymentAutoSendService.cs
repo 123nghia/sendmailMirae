@@ -20,18 +20,46 @@ namespace ToolCRM.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                try
+                // Wait a bit before starting to let the web server start
+                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    await CheckAndSendPaymentFiles();
-                    await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken); // Kiểm tra mỗi 10 phút
+                    try
+                    {
+                        await CheckAndSendPaymentFiles();
+                        
+                        // Use Task.WhenAny to handle cancellation properly
+                        var delayTask = Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
+                        await delayTask;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Expected when cancellation is requested
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error in PaymentAutoSendService");
+                        
+                        try
+                        {
+                            var delayTask = Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+                            await delayTask;
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            break;
+                        }
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error in PaymentAutoSendService");
-                    await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken); // Chờ 1 phút nếu có lỗi
-                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when service is stopping
+                _logger.LogInformation("PaymentAutoSendService is stopping");
             }
         }
 
