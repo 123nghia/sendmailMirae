@@ -68,6 +68,9 @@ namespace ToolCRM.Services
                                 _sentFiles[fileKey] = true;
                                 SaveSentFileToHistory(fileKey);
                                 _logger.LogInformation($"Payment file sent successfully: {file.Name}");
+                                
+                                // Đợi 30 giây giữa mỗi email để tránh bị throttle
+                                await Task.Delay(TimeSpan.FromSeconds(30));
                             }
                         }
                     }
@@ -83,6 +86,7 @@ namespace ToolCRM.Services
 
         private async Task<bool> DownloadAndSendPaymentFile(Renci.SshNet.SftpClient sftp, Renci.SshNet.Sftp.ISftpFile file)
         {
+            Stream fileStream = null;
             try
             {
                 var localDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Temp");
@@ -94,10 +98,14 @@ namespace ToolCRM.Services
                 var localFilePath = Path.Combine(localDirectory, file.Name);
 
                 // Download file
-                using (Stream fileStream = File.Create(localFilePath))
-                {
-                    sftp.DownloadFile(_appSettings.Sftp.PaymentFolder + "/" + file.Name, fileStream);
-                }
+                fileStream = File.Create(localFilePath);
+                sftp.DownloadFile(_appSettings.Sftp.PaymentFolder + "/" + file.Name, fileStream);
+                fileStream.Close();
+                fileStream.Dispose();
+                fileStream = null;
+
+                // Đợi một chút để đảm bảo file được ghi hoàn toàn
+                await Task.Delay(500);
 
                 // Gửi email
                 var sendmail = new ToolCRM.Business.Sendmail(
@@ -105,10 +113,23 @@ namespace ToolCRM.Services
                 
                 var result = await sendmail.SendPaymentFileEmail(localFilePath, file.Name, file.LastAccessTime);
 
-                // Xóa file tạm
-                if (File.Exists(localFilePath))
+                // Đợi một chút trước khi xóa file để đảm bảo email đã được gửi
+                await Task.Delay(1000);
+
+                // Xóa file tạm với retry
+                var retryCount = 0;
+                while (retryCount < 3 && File.Exists(localFilePath))
                 {
-                    File.Delete(localFilePath);
+                    try
+                    {
+                        File.Delete(localFilePath);
+                        break;
+                    }
+                    catch (IOException)
+                    {
+                        retryCount++;
+                        await Task.Delay(1000);
+                    }
                 }
 
                 return result;
@@ -116,6 +137,18 @@ namespace ToolCRM.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error downloading and sending payment file: {file.Name}");
+                
+                // Đảm bảo stream được đóng
+                if (fileStream != null)
+                {
+                    try
+                    {
+                        fileStream.Close();
+                        fileStream.Dispose();
+                    }
+                    catch { }
+                }
+                
                 return false;
             }
         }
