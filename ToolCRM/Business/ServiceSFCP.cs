@@ -1,22 +1,27 @@
 ﻿using Renci.SshNet;
+using ToolCRM.Configuration;
 
 namespace ToolCRM.Business
 {
     public class ServiceSFCP
     {
-        private readonly string HOST = @"smartbank-sftp.mafc.vn";
-        private readonly string USERNAME = "smartbank";
-        private readonly string PASSWORD = "$m@rT3anK2024";
-        private readonly int PORT = 6336;
-        public ServiceSFCP()
+        private readonly AppSettings _appSettings;
+        
+        public ServiceSFCP(AppSettings appSettings)
         {
+            _appSettings = appSettings;
         }
+        
+        private string HOST => _appSettings.Sftp.Host;
+        private string USERNAME => _appSettings.Sftp.Username;
+        private string PASSWORD => _appSettings.Sftp.Password;
+        private int PORT => _appSettings.Sftp.Port;
+        private string WorkingTimeFolder => _appSettings.Sftp.WorkingTimeFolder;
+        private string CallReportFolder => _appSettings.Sftp.CallReportFolder;
         private async Task UploadFileWorkingTime( string filePath)
         {
             var dateHandle = DateTime.Now.AddDays(0);
-            string remoteDirectory = "/uploads/PAYMENT";
-            string remoteUPloadWorkingTime = "/uploads/WORKINGTIME/";
-            string remoteUPloadCallReport = "/uploads/CAllREPORT/";
+            string remoteUPloadWorkingTime = WorkingTimeFolder;
             var fullPathWorkingTimeReport = filePath;
             var streams = new List<Stream>();
             using (var sftp = new SftpClient(HOST, PORT, USERNAME, PASSWORD))
@@ -52,7 +57,7 @@ namespace ToolCRM.Business
 
         private async Task UploadFileReportCDR(string filePath)
         {
-            string remoteUPloadCallReport = "/uploads/CAllREPORT/";
+            string remoteUPloadCallReport = CallReportFolder;
             var fullPathWorkingTimeReport = filePath;
             var streams = new List<Stream>();
             using (var sftp = new SftpClient(HOST, PORT, USERNAME, PASSWORD))
@@ -84,8 +89,7 @@ namespace ToolCRM.Business
         }
         private async Task HandleFolderWorkingTime()
         {
-          
-            string localDirectory = "C:\\sendmailMirae\\ToolCRM\\UploadFile\\workingTime";
+            string localDirectory = Path.Combine(Directory.GetCurrentDirectory(), _appSettings.FilePaths.UploadWorkingTime);
             var allFileInFolder = Directory.GetFiles(localDirectory);
             foreach (var item in allFileInFolder)
             {
@@ -95,7 +99,7 @@ namespace ToolCRM.Business
         }
         private async Task HandleFolderCDR()
         {
-            string localDirectory = "C:\\sendmailMirae\\ToolCRM\\UploadFile\\CallReport";
+            string localDirectory = Path.Combine(Directory.GetCurrentDirectory(), _appSettings.FilePaths.UploadCallReport);
             var allFileInFolder = Directory.GetFiles(localDirectory);
             foreach (var item in allFileInFolder)
             {

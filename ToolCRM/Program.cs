@@ -3,6 +3,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// Configure AppSettings
+builder.Services.Configure<ToolCRM.Configuration.AppSettings>(
+    builder.Configuration.GetSection("AppSettings"));
+
+// Register services
+builder.Services.AddScoped<ToolCRM.Business.Sendmail>();
+builder.Services.AddScoped<ToolCRM.Business.HanldeBusiness>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

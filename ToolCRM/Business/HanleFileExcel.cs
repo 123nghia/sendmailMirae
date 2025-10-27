@@ -1,13 +1,20 @@
 ﻿
 using OfficeOpenXml;
 using ToolCRM.Models;
+using ToolCRM.Configuration;
 
 namespace ToolCRM.Business
 {
     public class HanleFileExcel
     {
+        private readonly AppSettings _appSettings;
 
         public readonly string FORTMAT_DATETIME = "mmmm d, yyyy, h:mm AM/PM";
+
+        public HanleFileExcel(AppSettings appSettings)
+        {
+            _appSettings = appSettings;
+        }
         public List<DataReportCDRSource> LoadFileDataSorce(DateTime timerun, string pathfile)
         {
             var listData = new List<DataReportCDRSource>();
@@ -122,7 +129,7 @@ namespace ToolCRM.Business
             var listDataHandle = LoadFileDataSorce(timerun.Value, filePath);
             var listData = new List<DataReportCDRSource>();
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            var pathInfo = "C:\\sendmailMirae\\ToolCRM\\UploadFile\\CallReport";
+            var pathInfo = Path.Combine(Directory.GetCurrentDirectory(), _appSettings.FilePaths.UploadCallReport);
             if (!Directory.Exists(pathInfo))
             {
                 Directory.CreateDirectory(pathInfo);

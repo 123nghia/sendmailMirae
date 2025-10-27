@@ -1,5 +1,7 @@
 ﻿
 using ToolCRM.Models;
+using ToolCRM.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace ToolCRM.Business
 {
@@ -7,14 +9,18 @@ namespace ToolCRM.Business
     {
         public HandleFileWorkingTime handleFileWorkingTime;
         public HanleFileExcel hanleFileExcel;
-
         public ServiceSFCP serviceSFCP;
-        public HanldeBusiness()
+        public Sendmail sendmail;
+        
+        private readonly AppSettings _appSettings;
+        
+        public HanldeBusiness(IOptions<AppSettings> appSettings)
         {
-            handleFileWorkingTime = new HandleFileWorkingTime();
-            hanleFileExcel = new HanleFileExcel();
-            serviceSFCP = new ServiceSFCP();
-
+            _appSettings = appSettings.Value;
+            handleFileWorkingTime = new HandleFileWorkingTime(_appSettings);
+            hanleFileExcel = new HanleFileExcel(_appSettings);
+            serviceSFCP = new ServiceSFCP(_appSettings);
+            sendmail = new Sendmail(_appSettings);
         }
 
 
@@ -23,7 +29,7 @@ namespace ToolCRM.Business
             var fileTC = request.FileTC;
             var fileReprort = request.FileReport;
             var dayReport = request.DayReport;
-            var filePath = "C:\\sendmailMirae\\ToolCRM\\SourceFile";
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _appSettings.FilePaths.SourceFile);
             var dateGet = dayReport.Value.ToString("yyyyMMdd");
             var workingTimeReportFile =  Path.Combine( filePath,  "working_time_" + dateGet + ".xlsx");
             var reprortCDRFileName = Path.Combine(filePath, "call_report_" + dateGet + ".xlsx");

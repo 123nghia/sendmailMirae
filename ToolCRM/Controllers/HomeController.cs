@@ -8,12 +8,12 @@ namespace ToolCRM.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private HanldeBusiness bussines;
+        private readonly HanldeBusiness bussines;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, HanldeBusiness business)
         {
             _logger = logger;
-            bussines = new HanldeBusiness();
+            bussines = business;
         }
 
         public async Task<IActionResult> Index(InputRequest? request)

@@ -1,37 +1,45 @@
 ﻿
 using OfficeOpenXml;
 using ToolCRM.Models;
+using ToolCRM.Configuration;
 
 namespace ToolCRM.Business
 {
     public class HandleFileWorkingTime
     {
+        private readonly AppSettings _appSettings;
 
         public readonly string FORTMAT_DATETIME = "mmmm d, yyyy, h:mm AM/PM";
+
+        public HandleFileWorkingTime(AppSettings appSettings)
+        {
+            _appSettings = appSettings;
+        }
         public List<DataWorkingTimeSource> LoadFileDataSorce()
         {
             var listData = new List<DataWorkingTimeSource>();
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            var folderWorkingTime = "C:\\sendmailMirae\\ToolCRM\\SourceFile\\workingTime";
-            var pathInfo = "C:\\Users\\Admin\\Desktop\\source\\TC.xlsx";
-            var listFilesub = Directory.GetFiles(folderWorkingTime);
-            foreach (var item in listFilesub)
+            var sourceFileDir = Path.Combine(Directory.GetCurrentDirectory(), _appSettings.FilePaths.SourceFile);
+            
+            // Tìm tất cả file .xlsx trong thư mục SourceFile
+            var files = Directory.GetFiles(sourceFileDir, "*.xlsx", SearchOption.TopDirectoryOnly);
+            
+            // Xử lý file đầu tiên tìm được
+            if (files.Length > 0)
             {
-               
-                  
-                
-            }
-            using (ExcelPackage package = new ExcelPackage(pathInfo))
-            {
-                ExcelWorksheet workSheet = package.Workbook.Worksheets.FirstOrDefault();
-                if (workSheet != null)
+                var pathInfo = files[0];
+                using (ExcelPackage package = new ExcelPackage(pathInfo))
                 {
-                    int totalRows = workSheet.Rows.Count();
-                    for (int i = 2; i <= totalRows; i++)
+                    ExcelWorksheet workSheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (workSheet != null)
                     {
-                        var item = new DataWorkingTimeSource();
-                        item.UserName = workSheet.Cells[i, 3].Value?.ToString();
-                        listData.Add(item);
+                        int totalRows = workSheet.Rows.Count();
+                        for (int i = 2; i <= totalRows; i++)
+                        {
+                            var item = new DataWorkingTimeSource();
+                            item.UserName = workSheet.Cells[i, 3].Value?.ToString();
+                            listData.Add(item);
+                        }
                     }
                 }
             }
@@ -140,7 +148,7 @@ namespace ToolCRM.Business
             var listDataHandle = LoadFileDataSorceSingleFile(filePath);
             var dateGet = timeRun.ToString("yyyyMMdd");
             var fileName = "working_time_" + dateGet + ".xlsx";
-            var pathInfo = "C:\\sendmailMirae\\ToolCRM\\UploadFile\\workingTime";
+            var pathInfo = Path.Combine(Directory.GetCurrentDirectory(), _appSettings.FilePaths.UploadWorkingTime);
 
             if(!Directory.Exists(pathInfo))
             {
@@ -199,7 +207,7 @@ namespace ToolCRM.Business
 
             var listDataHandle = LoadFileDataSorce();
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            var pathInfo = "C:\\sendmailMirae\\ToolCRM\\UploadFile\\workingTime";
+            var pathInfo = Path.Combine(Directory.GetCurrentDirectory(), _appSettings.FilePaths.UploadWorkingTime);
             var dateGet = timeNow.ToString("yyyyMMdd");
             var fileName = "working_time_" + dateGet + ".xlsx";
             var fileInfo = Path.Combine(pathInfo, fileName);
