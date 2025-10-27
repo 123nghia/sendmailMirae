@@ -6,66 +6,78 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h3 class="mb-0">
                         <i class="fas fa-server me-2"></i>SFTP File Manager
                     </h3>
                 </div>
                 <div class="card-body">
                     <!-- Connection Info -->
-                    <div class="card mb-3">
-                        <div class="card-header bg-secondary text-white">
-                            <h5 class="mb-0"><i class="fas fa-server me-2"></i>Connection Information</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p><strong>Host:</strong> @ViewBag.SftpHost</p>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title"><i class="fas fa-info-circle me-2"></i>Connection Information</h6>
+                                    <p class="mb-1"><strong>Host:</strong> @ViewBag.SftpHost</p>
+                                    <p class="mb-0"><strong>Port:</strong> @ViewBag.SftpPort</p>
                                 </div>
-                                <div class="col-md-6">
-                                    <p><strong>Port:</strong> @ViewBag.SftpPort</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title"><i class="fas fa-network-wired me-2"></i>Connection Status</h6>
+                                    <div id="connectionStatus" class="d-flex align-items-center">
+                                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span id="statusText">Checking...</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Connection Status -->
-                    <div class="alert alert-info d-flex align-items-center mb-3" id="connectionStatus">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <div>
-                            <strong>Connection Status:</strong>
-                            <span id="statusText">Checking...</span>
-                        </div>
-                    </div>
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-3">
+                        <ol class="breadcrumb" id="breadcrumb">
+                            <li class="breadcrumb-item active"><i class="fas fa-home"></i> Root</li>
+                        </ol>
+                    </nav>
 
+                    <!-- Actions -->
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
-                            <button id="btnRefresh" class="btn btn-primary">
+                            <button id="btnRefresh" class="btn btn-primary btn-sm">
                                 <i class="fas fa-sync-alt me-1"></i>Refresh
                             </button>
-                            <button id="btnTestConnection" class="btn btn-success ms-2">
-                                <i class="fas fa-network-wired me-1"></i>Test Connection
+                            <button id="btnBack" class="btn btn-secondary btn-sm ms-2">
+                                <i class="fas fa-arrow-left me-1"></i>Back
                             </button>
-                            <button id="btnSendPayment" class="btn btn-warning ms-2">
+                            <button id="btnHome" class="btn btn-info btn-sm ms-2">
+                                <i class="fas fa-home me-1"></i>Home
+                            </button>
+                            <button id="btnSendPayment" class="btn btn-warning btn-sm ms-2">
                                 <i class="fas fa-paper-plane me-1"></i>Send Latest Payment
                             </button>
                         </div>
                         <div class="input-group" style="max-width: 300px;">
-                            <input type="text" id="searchInput" class="form-control" placeholder="Search files...">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Search...">
                             <button class="btn btn-outline-secondary" type="button" id="btnSearch">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
                     </div>
 
+                    <!-- File/Folder List -->
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover" id="filesTable">
+                        <table class="table table-hover" id="filesTable">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>File Name</th>
-                                    <th>Type</th>
+                                    <th style="width: 40px;"></th>
+                                    <th>Name</th>
                                     <th>Size</th>
-                                    <th>Last Modified</th>
+                                    <th>Modified</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -75,12 +87,14 @@
                                         <div class="spinner-border text-primary" role="status">
                                             <span class="visually-hidden">Loading...</span>
                                         </div>
-                                        <p class="mt-2">Loading files...</p>
+                                        <p class="mt-2">Loading...</p>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+
+                    <input type="hidden" id="currentPath" value="/">
                 </div>
             </div>
         </div>
@@ -89,16 +103,29 @@
 
 @section Scripts {
 <script>
+let currentPath = '/';
+
 $(document).ready(function() {
     checkConnection();
-    loadFiles();
+    loadDirectory('/');
 
     $('#btnRefresh').click(function() {
-        loadFiles();
+        loadDirectory(currentPath);
     });
 
     $('#btnTestConnection').click(function() {
         checkConnection();
+    });
+
+    $('#btnBack').click(function() {
+        if (currentPath !== '/') {
+            const parentPath = currentPath.substring(0, currentPath.lastIndexOf('/')) || '/';
+            loadDirectory(parentPath);
+        }
+    });
+
+    $('#btnHome').click(function() {
+        loadDirectory('/');
     });
 
     $('#btnSendPayment').click(function() {
@@ -114,162 +141,208 @@ $(document).ready(function() {
             filterTable();
         }
     });
-
-    function checkConnection() {
-        $('#statusText').text('Checking connection...');
-        $('#connectionStatus').removeClass('alert-success alert-danger alert-warning')
-                              .addClass('alert-info');
-
-        $.ajax({
-            url: '/Sftp/GetFiles',
-            type: 'GET',
-            dataType: 'json',
-            timeout: 10000,
-            success: function(response) {
-                if (response.success) {
-                    updateConnectionStatus('Connected', 'alert-success', 
-                        'Connection successful: ' + response.files.length + ' files found');
-                } else {
-                    updateConnectionStatus('Error', 'alert-danger', 
-                        'Connection error: ' + response.message);
-                }
-            },
-            error: function(xhr, status, error) {
-                var errorMsg = 'Connection failed: ';
-                if (status === 'timeout') {
-                    errorMsg += 'Connection timeout. Please check your network and SFTP server.';
-                } else if (xhr.status === 0) {
-                    errorMsg += 'Cannot connect to server. Please check if the service is running.';
-                } else {
-                    errorMsg += error + ' (Status: ' + status + ')';
-                }
-                updateConnectionStatus('Disconnected', 'alert-danger', errorMsg);
-            }
-        });
-    }
-
-    function updateConnectionStatus(status, alertClass, message) {
-        $('#statusText').text(status + ' - ' + message);
-        $('#connectionStatus').removeClass('alert-info alert-success alert-danger alert-warning')
-                              .addClass(alertClass);
-    }
-
-    function sendLatestPayment() {
-        if (!confirm('Bạn có chắc chắn muốn gửi file payment mới nhất qua email?')) {
-            return;
-        }
-
-        var btn = $('#btnSendPayment');
-        var originalText = btn.html();
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Sending...');
-
-        $.ajax({
-            url: '/Sftp/SendLatestPayment',
-            type: 'POST',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    alert('File payment đã được gửi thành công!');
-                } else {
-                    alert('Lỗi gửi file: ' + response.message);
-                }
-            },
-            error: function(xhr, status, error) {
-                alert('Lỗi gửi file: ' + error);
-            },
-            complete: function() {
-                btn.prop('disabled', false).html(originalText);
-            }
-        });
-    }
-
-    function loadFiles() {
-        $.ajax({
-            url: '/Sftp/GetFiles',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    displayFiles(response.files);
-                } else {
-                    showError('Failed to load files: ' + response.message);
-                }
-            },
-            error: function(xhr, status, error) {
-                showError('Error loading files: ' + error);
-            }
-        });
-    }
-
-    function displayFiles(files) {
-        var tbody = $('#filesTableBody');
-        tbody.empty();
-
-        if (files.length === 0) {
-            tbody.append('<tr><td colspan="5" class="text-center text-muted">No files found</td></tr>');
-            return;
-        }
-
-        files.forEach(function(file) {
-            var sizeText = formatFileSize(file.size);
-            var dateText = new Date(file.lastModified).toLocaleString('vi-VN');
-            var badgeClass = file.type === 'WorkingTime' ? 'bg-info' : 'bg-success';
-
-            var row = '<tr>' +
-                '<td><i class="fas fa-file-excel text-success me-2"></i>' + escapeHtml(file.name) + '</td>' +
-                '<td><span class="badge ' + badgeClass + '">' + file.type + '</span></td>' +
-                '<td>' + sizeText + '</td>' +
-                '<td>' + dateText + '</td>' +
-                '<td>' +
-                    '<button class="btn btn-sm btn-primary" onclick="downloadFile(\'' + encodeURIComponent(file.path) + '\')">' +
-                        '<i class="fas fa-download me-1"></i>Download' +
-                    '</button>' +
-                '</td>' +
-            '</tr>';
-
-            tbody.append(row);
-        });
-    }
-
-    function filterTable() {
-        var searchText = $('#searchInput').val().toLowerCase();
-        $('#filesTableBody tr').each(function() {
-            var rowText = $(this).text().toLowerCase();
-            $(this).toggle(rowText.indexOf(searchText) > -1);
-        });
-    }
-
-    window.downloadFile = function(filePath) {
-        window.location.href = '/Sftp/DownloadFile?filePath=' + filePath;
-    };
-
-    function formatFileSize(bytes) {
-        if (bytes === 0) return '0 B';
-        var k = 1024;
-        var sizes = ['B', 'KB', 'MB', 'GB'];
-        var i = Math.floor(Math.log(bytes) / Math.log(k));
-        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-    }
-
-    function escapeHtml(text) {
-        var map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-    }
-
-    function showError(message) {
-        $('#filesTableBody').html(
-            '<tr><td colspan="5" class="text-center text-danger">' + 
-            '<i class="fas fa-exclamation-triangle me-2"></i>' + 
-            escapeHtml(message) + 
-            '</td></tr>'
-        );
-    }
 });
+
+function checkConnection() {
+    $.ajax({
+        url: '/Sftp/ListDirectory',
+        type: 'GET',
+        data: { path: '/' },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                updateConnectionStatus('Connected', 'alert-success', `Connection successful: ${response.items.length} items found`);
+            } else {
+                updateConnectionStatus('Disconnected', 'alert-danger', 'Connection failed: ' + response.message);
+            }
+        },
+        error: function() {
+            updateConnectionStatus('Error', 'alert-danger', 'Unable to connect to SFTP server');
+        }
+    });
+}
+
+function updateConnectionStatus(status, alertClass, message) {
+    $('#connectionStatus').removeClass('alert-info alert-success alert-danger alert-warning')
+                          .addClass(alertClass);
+    $('#statusText').text(message);
+    
+    // Remove spinner
+    $('#connectionStatus .spinner-border').remove();
+}
+
+function loadDirectory(path) {
+    $('#filesTableBody').html('<tr><td colspan="5" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Loading...</p></td></tr>');
+    
+    $.ajax({
+        url: '/Sftp/ListDirectory',
+        type: 'GET',
+        data: { path: path },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                currentPath = response.path;
+                $('#currentPath').val(currentPath);
+                updateBreadcrumb(currentPath);
+                displayItems(response.items);
+            } else {
+                showError('Failed to load directory: ' + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            showError('Error loading directory: ' + error);
+        }
+    });
+}
+
+function updateBreadcrumb(path) {
+    const breadcrumb = $('#breadcrumb');
+    breadcrumb.empty();
+    
+    const parts = path.split('/').filter(p => p);
+    
+    breadcrumb.append('<li class="breadcrumb-item"><a href="javascript:void(0)" onclick="loadDirectory(\'/\')"><i class="fas fa-home"></i> Root</a></li>');
+    
+    let current = '/';
+    parts.forEach((part, index) => {
+        current = current === '/' ? '/' + part : current + '/' + part;
+        const isLast = index === parts.length - 1;
+        if (isLast) {
+            breadcrumb.append(`<li class="breadcrumb-item active">${part}</li>`);
+        } else {
+            breadcrumb.append(`<li class="breadcrumb-item"><a href="javascript:void(0)" onclick="loadDirectory('${current}')">${part}</a></li>`);
+        }
+    });
+}
+
+function displayItems(items) {
+    const tbody = $('#filesTableBody');
+    tbody.empty();
+
+    if (items.length === 0) {
+        tbody.append('<tr><td colspan="5" class="text-center text-muted">Empty directory</td></tr>');
+        return;
+    }
+
+    // Sort: folders first, then files
+    items.sort((a, b) => {
+        if (a.isDirectory && !b.isDirectory) return -1;
+        if (!a.isDirectory && b.isDirectory) return 1;
+        return a.name.localeCompare(b.name);
+    });
+
+    items.forEach(function(item) {
+        const icon = item.isDirectory ? '<i class="fas fa-folder text-warning"></i>' : '<i class="fas fa-file text-primary"></i>';
+        const sizeText = item.isDirectory ? '-' : formatFileSize(item.size);
+        const dateText = new Date(item.lastModified).toLocaleString('vi-VN');
+        
+        const row = '<tr class="pointer" ' + (item.isDirectory ? `onclick="loadDirectory('${item.fullPath}')"` : '') + '>' +
+            '<td>' + icon + '</td>' +
+            '<td><strong>' + escapeHtml(item.name) + '</strong></td>' +
+            '<td>' + sizeText + '</td>' +
+            '<td>' + dateText + '</td>' +
+            '<td>' +
+                (!item.isDirectory ?
+                    '<button class="btn btn-sm btn-primary me-1" onclick="event.stopPropagation(); downloadFile(\'' + item.fullPath + '\')">' +
+                        '<i class="fas fa-download me-1"></i>Download' +
+                    '</button>' : 
+                    '<span class="badge bg-warning text-dark">Folder</span>') +
+            '</td>' +
+        '</tr>';
+
+        tbody.append(row);
+    });
+}
+
+function downloadFile(filePath) {
+    window.location.href = '/Sftp/DownloadFile?filePath=' + encodeURIComponent(filePath);
+}
+
+function filterTable() {
+    var searchText = $('#searchInput').val().toLowerCase();
+    $('#filesTableBody tr').each(function() {
+        var rowText = $(this).text().toLowerCase();
+        $(this).toggle(rowText.indexOf(searchText) > -1);
+    });
+}
+
+function formatFileSize(bytes) {
+    if (!bytes || bytes === 0) return '0 B';
+    var k = 1024;
+    var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+function escapeHtml(text) {
+    var map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+function sendLatestPayment() {
+    if (!confirm('Bạn có chắc chắn muốn gửi file payment mới nhất qua email?')) {
+        return;
+    }
+
+    var btn = $('#btnSendPayment');
+    var originalText = btn.html();
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Sending...');
+
+    $.ajax({
+        url: '/Sftp/SendLatestPayment',
+        type: 'POST',
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                alert('File payment đã được gửi thành công!');
+            } else {
+                alert('Lỗi gửi file: ' + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            alert('Lỗi gửi file: ' + error);
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                console.error('Error details:', xhr.responseJSON.message);
+            }
+        },
+        complete: function() {
+            btn.prop('disabled', false).html(originalText);
+        }
+    });
+}
+
+function showError(message) {
+    $('#filesTableBody').html(
+        '<tr><td colspan="5" class="text-center text-danger">' + 
+        '<i class="fas fa-exclamation-triangle me-2"></i>' + 
+        escapeHtml(message) + 
+        '</td></tr>'
+    );
+}
 </script>
+
+<style>
+.pointer {
+    cursor: pointer;
+}
+
+.pointer:hover {
+    background-color: #f8f9fa !important;
+}
+
+.breadcrumb-item a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+</style>
 }

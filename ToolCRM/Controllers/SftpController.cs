@@ -18,15 +18,21 @@ namespace ToolCRM.Controllers
         {
             ViewBag.SftpHost = _appSettings.Sftp.Host;
             ViewBag.SftpPort = _appSettings.Sftp.Port;
+            ViewBag.RootPath = "/";
             return View();
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetFiles()
+        public async Task<IActionResult> ListDirectory(string path = "/")
         {
             try
             {
-                var files = new List<dynamic>();
+                if (string.IsNullOrEmpty(path))
+                {
+                    path = "/";
+                }
+
+                var items = new List<dynamic>();
 
                 using (var sftp = new SftpClient(
                     _appSettings.Sftp.Host,
@@ -37,46 +43,79 @@ namespace ToolCRM.Controllers
                     sftp.ConnectionInfo.Timeout = TimeSpan.FromMinutes(2);
                     sftp.Connect();
 
-                    // Get files from WORKINGTIME folder
                     try
                     {
-                        var workingTimeFiles = sftp.ListDirectory(_appSettings.Sftp.WorkingTimeFolder);
-                        foreach (var file in workingTimeFiles.Where(f => f.IsRegularFile))
+                        var files = sftp.ListDirectory(path);
+                        
+                        foreach (var item in files)
                         {
-                            files.Add(new
-                            {
-                                name = file.Name,
-                                path = _appSettings.Sftp.WorkingTimeFolder + file.Name,
-                                size = file.Length,
-                                lastModified = file.LastWriteTime,
-                                type = "WorkingTime"
-                            });
-                        }
-                    }
-                    catch { }
+                            if (item.Name == "." || item.Name == "..")
+                                continue;
 
-                    // Get files from CallReport folder
-                    try
-                    {
-                        var callReportFiles = sftp.ListDirectory(_appSettings.Sftp.CallReportFolder);
-                        foreach (var file in callReportFiles.Where(f => f.IsRegularFile))
-                        {
-                            files.Add(new
+                            items.Add(new
                             {
-                                name = file.Name,
-                                path = _appSettings.Sftp.CallReportFolder + file.Name,
-                                size = file.Length,
-                                lastModified = file.LastWriteTime,
-                                type = "CallReport"
+                                name = item.Name,
+                                fullPath = CombinePath(path, item.Name),
+                                isDirectory = item.IsDirectory,
+                                isFile = item.IsRegularFile,
+                                size = item.Length,
+                                lastModified = item.LastWriteTime,
+                                permissions = item.Attributes.ToString()
                             });
                         }
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        return Json(new { success = false, message = ex.Message });
+                    }
 
                     sftp.Disconnect();
                 }
 
-                return Json(new { success = true, files = files });
+                return Json(new { success = true, path = path, items = items });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetFileContent(string filePath)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filePath))
+                {
+                    return BadRequest("File path is required");
+                }
+
+                using (var sftp = new SftpClient(
+                    _appSettings.Sftp.Host,
+                    _appSettings.Sftp.Port,
+                    _appSettings.Sftp.Username,
+                    _appSettings.Sftp.Password))
+                {
+                    sftp.ConnectionInfo.Timeout = TimeSpan.FromMinutes(2);
+                    sftp.Connect();
+
+                    var fileName = Path.GetFileName(filePath);
+                    
+                    // Check file size before downloading
+                    var fileInfo = sftp.Get(filePath);
+                    if (fileInfo != null && fileInfo.Length > 10 * 1024 * 1024) // 10MB limit
+                    {
+                        return Json(new { success = false, message = "File is too large to preview (>10MB)" });
+                    }
+
+                    var memoryStream = new MemoryStream();
+                    sftp.DownloadFile(filePath, memoryStream);
+                    memoryStream.Position = 0;
+
+                    sftp.Disconnect();
+
+                    return File(memoryStream.ToArray(), "application/octet-stream", fileName);
+                }
             }
             catch (Exception ex)
             {
@@ -143,6 +182,23 @@ namespace ToolCRM.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        private string CombinePath(string path1, string path2)
+        {
+            if (string.IsNullOrEmpty(path1))
+                return path2;
+            
+            if (string.IsNullOrEmpty(path2))
+                return path1;
+
+            path1 = path1.TrimEnd('/');
+            path2 = path2.TrimStart('/');
+
+            if (path1 == "/")
+                return "/" + path2;
+
+            return path1 + "/" + path2;
         }
     }
 }

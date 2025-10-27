@@ -39,54 +39,78 @@ namespace ToolCRM.Services
         {
             try
             {
+                _logger.LogInformation("Checking for payment files...");
+                
                 using (var sftp = new Renci.SshNet.SftpClient(
                     _appSettings.Sftp.Host,
                     _appSettings.Sftp.Port,
                     _appSettings.Sftp.Username,
                     _appSettings.Sftp.Password))
                 {
-                    sftp.ConnectionInfo.Timeout = TimeSpan.FromMinutes(2);
-                    sftp.Connect();
-
-                    var files = sftp.ListDirectory(_appSettings.Sftp.PaymentFolder);
+                    sftp.ConnectionInfo.Timeout = TimeSpan.FromSeconds(30);
                     
-                    // Lọc file payment của ngày hôm nay
-                    var today = DateTime.Now.Date;
-                    var todayPattern = today.ToString("yyyyMMdd");
-                    var todayFile = files.FirstOrDefault(f => f.IsRegularFile && 
-                                                                   f.Name.StartsWith("payment_") && 
-                                                                   f.Name.Contains(todayPattern));
-                    
-                    if (todayFile != null)
+                    try
                     {
-                        var fileKey = GetFileKey(todayFile);
+                        sftp.Connect();
+                        _logger.LogInformation("Connected to SFTP server");
+                    }
+                    catch (Exception connEx)
+                    {
+                        _logger.LogWarning($"Could not connect to SFTP server: {connEx.Message}");
+                        return; // Exit early if connection fails
+                    }
+
+                    try
+                    {
+                        var files = sftp.ListDirectory(_appSettings.Sftp.PaymentFolder);
                         
-                        // Kiểm tra xem file đã được gửi chưa
-                        if (!_sentFiles.ContainsKey(fileKey))
+                        // Lọc file payment của ngày hôm nay
+                        var today = DateTime.Now.Date;
+                        var todayPattern = today.ToString("yyyyMMdd");
+                        var todayFile = files.FirstOrDefault(f => f.IsRegularFile && 
+                                                                       f.Name.StartsWith("payment_") && 
+                                                                       f.Name.Contains(todayPattern));
+                        
+                        if (todayFile != null)
                         {
-                            _logger.LogInformation($"New payment file detected for today: {todayFile.Name}");
+                            var fileKey = GetFileKey(todayFile);
                             
-                            // Download và gửi file
-                            var success = await DownloadAndSendPaymentFile(sftp, todayFile);
-                            
-                            if (success)
+                            // Kiểm tra xem file đã được gửi chưa
+                            if (!_sentFiles.ContainsKey(fileKey))
                             {
-                                _sentFiles[fileKey] = true;
-                                SaveSentFileToHistory(fileKey);
-                                _logger.LogInformation($"Payment file sent successfully: {todayFile.Name}");
+                                _logger.LogInformation($"New payment file detected for today: {todayFile.Name}");
+                                
+                                // Download và gửi file
+                                var success = await DownloadAndSendPaymentFile(sftp, todayFile);
+                                
+                                if (success)
+                                {
+                                    _sentFiles[fileKey] = true;
+                                    SaveSentFileToHistory(fileKey);
+                                    _logger.LogInformation($"Payment file sent successfully: {todayFile.Name}");
+                                }
+                            }
+                            else
+                            {
+                                _logger.LogInformation($"Payment file for today already sent: {todayFile.Name}");
                             }
                         }
                         else
                         {
-                            _logger.LogInformation($"Payment file for today already sent: {todayFile.Name}");
+                            _logger.LogInformation($"No payment file found for today ({todayPattern})");
                         }
                     }
-                    else
+                    catch (Exception listEx)
                     {
-                        _logger.LogInformation($"No payment file found for today ({todayPattern})");
+                        _logger.LogError(listEx, "Error listing payment files");
                     }
-
-                    sftp.Disconnect();
+                    finally
+                    {
+                        if (sftp.IsConnected)
+                        {
+                            sftp.Disconnect();
+                        }
+                    }
                 }
             }
             catch (Exception ex)

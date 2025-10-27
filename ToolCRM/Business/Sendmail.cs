@@ -203,58 +203,85 @@ namespace ToolCRM.Business
 
         public async Task<bool> SendPaymentFileEmail(string filePath, string fileName, DateTime lastModified)
         {
-            try
+            const int MAX_RETRY = 3;
+            const int RETRY_DELAY_MINUTES = 5; // Đợi 5 phút nếu bị throttle
+            
+            for (int attempt = 1; attempt <= MAX_RETRY; attempt++)
             {
-                var monthtext = DateTime.Now.ToString("yyyy.MM.dd");
-                var subjectmail = "[" + monthtext + "] báo cáo payment hàng ngày";
-                var message = new MimeMessage();
-                var titleMail = "File PAYMENT ngày " + lastModified.ToString("dd.MM.yyyy");
-
-                message.From.Add(new MailboxAddress(titleMail, _appSettings.Email.Username));
-                var recipientAddress = _appSettings.Email.Recipient;
-                message.To.Add(new MailboxAddress("", recipientAddress));
-                message.Subject = subjectmail;
-
-                var multipart = new Multipart("mixed");
-                multipart.Add(new TextPart(MimeKit.Text.TextFormat.Html)
+                try
                 {
-                    Text = "Dear Admin <br><br>" +
-                    "Dữ liệu payment hàng ngày của (đối tác) gửi qua <br><br>" +
-                    "Dữ liệu được tính đến thời điểm gửi mail." +
-                    "<br><br>Thanks, Admin"
-                });
+                    var monthtext = DateTime.Now.ToString("yyyy.MM.dd");
+                    var subjectmail = "[" + monthtext + "] báo cáo payment hàng ngày";
+                    var message = new MimeMessage();
+                    var titleMail = "File PAYMENT ngày " + lastModified.ToString("dd.MM.yyyy");
 
-                // Attach file
-                var stream = File.OpenRead(filePath);
-                var attachment = new MimePart("application",
-                    "vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                {
-                    Content = new MimeContent(stream, ContentEncoding.Default),
-                    ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
-                    ContentTransferEncoding = ContentEncoding.Binary,
-                    FileName = fileName
-                };
+                    message.From.Add(new MailboxAddress(titleMail, _appSettings.Email.Username));
+                    var recipientAddress = _appSettings.Email.Recipient;
+                    message.To.Add(new MailboxAddress("", recipientAddress));
+                    message.Subject = subjectmail;
 
-                multipart.Add(attachment);
-                message.Body = multipart;
+                    var multipart = new Multipart("mixed");
+                    multipart.Add(new TextPart(MimeKit.Text.TextFormat.Html)
+                    {
+                        Text = "Dear Admin <br><br>" +
+                        "Dữ liệu payment hàng ngày của (đối tác) gửi qua <br><br>" +
+                        "Dữ liệu được tính đến thời điểm gửi mail." +
+                        "<br><br>Thanks, Admin"
+                    });
 
-                using (var client = new SmtpClient())
-                {
-                    client.Connect(_appSettings.Email.SmtpHost, _appSettings.Email.SmtpPort, MailKit.Security.SecureSocketOptions.Auto);
-                    client.Authenticate(_appSettings.Email.Username, _appSettings.Email.Password);
-                    client.Send(message);
-                    client.Disconnect(true);
-                    Console.WriteLine("Payment file sent successfully: " + fileName);
+                    // Attach file
+                    var stream = File.OpenRead(filePath);
+                    var attachment = new MimePart("application",
+                        "vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    {
+                        Content = new MimeContent(stream, ContentEncoding.Default),
+                        ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
+                        ContentTransferEncoding = ContentEncoding.Binary,
+                        FileName = fileName
+                    };
+
+                    multipart.Add(attachment);
+                    message.Body = multipart;
+
+                    using (var client = new SmtpClient())
+                    {
+                        client.Connect(_appSettings.Email.SmtpHost, _appSettings.Email.SmtpPort, MailKit.Security.SecureSocketOptions.Auto);
+                        client.Authenticate(_appSettings.Email.Username, _appSettings.Email.Password);
+                        client.Send(message);
+                        client.Disconnect(true);
+                        Console.WriteLine($"Payment file sent successfully: {fileName} (attempt {attempt})");
+                    }
+
+                    stream.Dispose();
+                    return true;
                 }
-
-                stream.Dispose();
-                return true;
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error sending payment file email (attempt {attempt}/{MAX_RETRY}): {ex.Message}");
+                    
+                    // Kiểm tra nếu là lỗi throttle
+                    if (ex.Message.Contains("Throttling quota exceeded") || ex.Message.Contains("Throttling"))
+                    {
+                        if (attempt < MAX_RETRY)
+                        {
+                            Console.WriteLine($"SMTP throttling detected. Waiting {RETRY_DELAY_MINUTES} minutes before retry...");
+                            await Task.Delay(TimeSpan.FromMinutes(RETRY_DELAY_MINUTES));
+                        }
+                        else
+                        {
+                            Console.WriteLine("Max retry attempts reached. Cannot send email due to SMTP throttling.");
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        // Nếu không phải lỗi throttle, không retry
+                        return false;
+                    }
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error sending payment file email: " + ex.Message);
-                return false;
-            }
+            
+            return false;
         }
     }
 }
