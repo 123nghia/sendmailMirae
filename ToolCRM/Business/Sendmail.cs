@@ -1,15 +1,16 @@
 using MailKit.Net.Smtp;
 using MimeKit;
 using ToolCRM.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace ToolCRM.Business
 {
     public class Sendmail
     {
         private readonly AppSettings _appSettings;
-        public Sendmail(AppSettings appSettings)
+        public Sendmail(IOptions<AppSettings> appSettings)
         {
-            _appSettings = appSettings;
+            _appSettings = appSettings.Value;
         }
         public async Task SendEmailReportAsync()
         {

@@ -20,7 +20,7 @@ namespace ToolCRM.Business
             handleFileWorkingTime = new HandleFileWorkingTime(_appSettings);
             hanleFileExcel = new HanleFileExcel(_appSettings);
             serviceSFCP = new ServiceSFCP(_appSettings);
-            sendmail = new Sendmail(_appSettings);
+            sendmail = new Sendmail(appSettings);
         }
 
 
