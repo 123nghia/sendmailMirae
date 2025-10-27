@@ -18,18 +18,18 @@ namespace ToolCRM.Controllers
         {
             ViewBag.SftpHost = _appSettings.Sftp.Host;
             ViewBag.SftpPort = _appSettings.Sftp.Port;
-            ViewBag.RootPath = "/";
+            ViewBag.RootPath = "/uploads/";
             return View();
         }
 
         [HttpGet]
-        public async Task<IActionResult> ListDirectory(string path = "/")
+        public async Task<IActionResult> ListDirectory(string path = "/uploads/")
         {
             try
             {
                 if (string.IsNullOrEmpty(path))
                 {
-                    path = "/";
+                    path = "/uploads/";
                 }
 
                 var items = new List<dynamic>();
@@ -60,9 +60,15 @@ namespace ToolCRM.Controllers
                                 isFile = item.IsRegularFile,
                                 size = item.Length,
                                 lastModified = item.LastWriteTime,
+                                lastAccessTime = item.LastAccessTime,
                                 permissions = item.Attributes.ToString()
                             });
                         }
+                        
+                        // Sort by last write time (newest first), then by name
+                        items = items.OrderByDescending(x => x.lastModified)
+                                    .ThenBy(x => x.name)
+                                    .ToList();
                     }
                     catch (Exception ex)
                     {

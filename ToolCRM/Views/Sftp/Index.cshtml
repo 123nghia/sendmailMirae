@@ -98,7 +98,7 @@
                         </table>
                     </div>
 
-                    <input type="hidden" id="currentPath" value="/">
+                    <input type="hidden" id="currentPath" value="/uploads/">
                 </div>
             </div>
         </div>
@@ -107,11 +107,11 @@
 
 @section Scripts {
 <script>
-let currentPath = '/';
+let currentPath = '/uploads/';
 
 $(document).ready(function() {
     checkConnection();
-    loadDirectory('/');
+    loadDirectory('/uploads/');
 
     $('#btnRefresh').click(function() {
         loadDirectory(currentPath);
@@ -122,14 +122,16 @@ $(document).ready(function() {
     });
 
     $('#btnBack').click(function() {
-        if (currentPath !== '/') {
-            const parentPath = currentPath.substring(0, currentPath.lastIndexOf('/')) || '/';
+        if (currentPath !== '/uploads/' && currentPath !== '/') {
+            const parentPath = currentPath.substring(0, currentPath.lastIndexOf('/')) || '/uploads/';
             loadDirectory(parentPath);
+        } else if (currentPath === '/uploads/') {
+            loadDirectory('/');
         }
     });
 
     $('#btnHome').click(function() {
-        loadDirectory('/');
+        loadDirectory('/uploads/');
     });
 
     $('#btnSendPayment').click(function() {
@@ -151,7 +153,7 @@ function checkConnection() {
     $.ajax({
         url: '/Sftp/ListDirectory',
         type: 'GET',
-        data: { path: '/' },
+        data: { path: '/uploads/' },
         dataType: 'json',
         success: function(response) {
             if (response.success) {
@@ -209,11 +211,12 @@ function updateBreadcrumb(path) {
     
     const parts = path.split('/').filter(p => p);
     
+    // Always show root first
     breadcrumb.append('<li class="breadcrumb-item"><a href="javascript:void(0)" onclick="loadDirectory(\'/\')"><i class="fas fa-home"></i> Root</a></li>');
     
     let current = '/';
     parts.forEach((part, index) => {
-        current = current === '/' ? '/' + part : current + '/' + part;
+        current = current === '/' ? '/' + part + '/' : current + part + '/';
         const isLast = index === parts.length - 1;
         if (isLast) {
             breadcrumb.append(`<li class="breadcrumb-item active">${part}</li>`);
@@ -232,14 +235,13 @@ function displayItems(items) {
         return;
     }
 
-    // Sort: folders first, then files
-    items.sort((a, b) => {
-        if (a.isDirectory && !b.isDirectory) return -1;
-        if (!a.isDirectory && b.isDirectory) return 1;
-        return a.name.localeCompare(b.name);
-    });
+    // Items are already sorted by backend (newest first by lastModified, then by name)
+    // Just separate folders and files, then display folders first
+    const folders = items.filter(item => item.isDirectory);
+    const files = items.filter(item => !item.isDirectory);
+    const sortedItems = [...folders, ...files];
 
-    items.forEach(function(item) {
+    sortedItems.forEach(function(item) {
         const icon = item.isDirectory ? '<i class="fas fa-folder text-warning"></i>' : '<i class="fas fa-file text-primary"></i>';
         const sizeText = item.isDirectory ? '-' : formatFileSize(item.size);
         const dateText = new Date(item.lastModified).toLocaleString('vi-VN');
