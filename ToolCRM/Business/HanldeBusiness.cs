@@ -128,26 +128,6 @@ namespace ToolCRM.Business
                     processSteps.Add("✓ Xác thực file TC");
                 }
 
-                // Validate file Report (optional)
-                if (fileReprort != null && fileReprort.Length > 0)
-                {
-                    if (!File.Exists(reprortCDRFileName) || new FileInfo(reprortCDRFileName).Length == 0)
-                    {
-                        Console.WriteLine("❌ File báo cáo không tồn tại hoặc rỗng sau khi lưu");
-                        errors.Add("❌ File báo cáo không tồn tại hoặc rỗng sau khi lưu");
-                        await loggingService.LogFileProcessing("call_report_" + dateGet + ".xlsx", "FileValidation", false, "File không tồn tại hoặc rỗng");
-                        return string.Join("; ", errors);
-                    }
-                    else
-                    {
-                        Console.WriteLine("✅ File Report hợp lệ");
-                        processSteps.Add("✓ Xác thực file báo cáo");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("⚠️ Không có file Report để xác thực");
-                }
                 
                 // Step 6: Process files
                 Console.WriteLine("⚙️ Bước 6: Xử lý file Working Time...");
