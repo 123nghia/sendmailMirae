@@ -46,26 +46,30 @@
                     </nav>
 
                     <!-- Actions -->
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div>
-                            <button id="btnRefresh" class="btn btn-primary btn-sm">
-                                <i class="fas fa-sync-alt me-1"></i>Refresh
-                            </button>
-                            <button id="btnBack" class="btn btn-secondary btn-sm ms-2">
-                                <i class="fas fa-arrow-left me-1"></i>Back
-                            </button>
-                            <button id="btnHome" class="btn btn-info btn-sm ms-2">
-                                <i class="fas fa-home me-1"></i>Home
-                            </button>
-                            <button id="btnSendPayment" class="btn btn-warning btn-sm ms-2">
-                                <i class="fas fa-paper-plane me-1"></i>Send Latest Payment
-                            </button>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="btn-group" role="group">
+                                <button id="btnRefresh" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                                </button>
+                                <button id="btnBack" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-arrow-left me-1"></i>Back
+                                </button>
+                                <button id="btnHome" class="btn btn-info btn-sm">
+                                    <i class="fas fa-home me-1"></i>Home
+                                </button>
+                                <button id="btnSendPayment" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-paper-plane me-1"></i>Send Payment
+                                </button>
+                            </div>
                         </div>
-                        <div class="input-group" style="max-width: 300px;">
-                            <input type="text" id="searchInput" class="form-control" placeholder="Search...">
-                            <button class="btn btn-outline-secondary" type="button" id="btnSearch">
-                                <i class="fas fa-search"></i>
-                            </button>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search files...">
+                                <button class="btn btn-outline-secondary btn-sm" type="button" id="btnSearch">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -195,6 +199,10 @@ function loadDirectory(path) {
     });
 }
 
+function navigateToFolder(path) {
+    loadDirectory(path);
+}
+
 function updateBreadcrumb(path) {
     const breadcrumb = $('#breadcrumb');
     breadcrumb.empty();
@@ -236,17 +244,22 @@ function displayItems(items) {
         const sizeText = item.isDirectory ? '-' : formatFileSize(item.size);
         const dateText = new Date(item.lastModified).toLocaleString('vi-VN');
         
-        const row = '<tr class="pointer" ' + (item.isDirectory ? `onclick="loadDirectory('${item.fullPath}')"` : '') + '>' +
+        // Escape the path for use in onclick
+        const escapedPath = item.fullPath.replace(/'/g, "\\'");
+        
+        const row = '<tr class="pointer" ' + (item.isDirectory ? `onclick="navigateToFolder('${escapedPath}')"` : '') + '>' +
             '<td>' + icon + '</td>' +
             '<td><strong>' + escapeHtml(item.name) + '</strong></td>' +
             '<td>' + sizeText + '</td>' +
             '<td>' + dateText + '</td>' +
             '<td>' +
                 (!item.isDirectory ?
-                    '<button class="btn btn-sm btn-primary me-1" onclick="event.stopPropagation(); downloadFile(\'' + item.fullPath + '\')">' +
+                    '<button class="btn btn-sm btn-primary me-1" onclick="event.stopPropagation(); downloadFile(\'' + escapedPath + '\')">' +
                         '<i class="fas fa-download me-1"></i>Download' +
                     '</button>' : 
-                    '<span class="badge bg-warning text-dark">Folder</span>') +
+                    '<button class="btn btn-sm btn-success me-1" onclick="event.stopPropagation(); navigateToFolder(\'' + escapedPath + '\')">' +
+                        '<i class="fas fa-folder-open me-1"></i>Open' +
+                    '</button>') +
             '</td>' +
         '</tr>';
 
@@ -343,6 +356,49 @@ function showError(message) {
 
 .breadcrumb-item a:hover {
     text-decoration: underline;
+}
+
+/* Responsive adjustments */
+@@media (max-width: 767.98px) {
+    .btn-group {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+    
+    .btn-group .btn {
+        flex: 1 1 calc(50% - 0.25rem);
+        min-width: 120px;
+    }
+    
+    .col-md-6 {
+        margin-bottom: 1rem;
+    }
+    
+    #searchInput {
+        width: 100%;
+    }
+}
+
+/* Fix for connection status styling */
+#connectionStatus {
+    align-items: center;
+    display: flex;
+}
+
+.card .card-body {
+    padding: 1rem;
+}
+
+/* Button group improvements */
+.btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.btn-group .btn {
+    white-space: nowrap;
 }
 </style>
 }
