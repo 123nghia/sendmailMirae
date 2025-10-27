@@ -225,5 +225,3 @@ async function uploadToSFTP() {
         showAlert("Lỗi kết nối: " + error.message, "danger");
     }
 }
-    
-}
