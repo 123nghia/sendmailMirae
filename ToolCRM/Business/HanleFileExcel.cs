@@ -139,7 +139,6 @@ namespace ToolCRM.Business
             if (File.Exists(fileInfo))
             {
                 File.Delete(fileInfo);
-                return;
             }
             var file = new FileInfo(fileInfo);
             using (ExcelPackage package = new ExcelPackage(file))
