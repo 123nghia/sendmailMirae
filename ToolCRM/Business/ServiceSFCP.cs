@@ -35,23 +35,33 @@ namespace ToolCRM.Business
             {
                 try
                 {
+                    _logger.LogInformation($"Attempting to upload {fileName} to {WorkingTimeFolder}");
+                    
                     using (var sftp = new SftpClient(HOST, PORT, USERNAME, PASSWORD))
                     {
                         sftp.ConnectionInfo.Timeout = TimeSpan.FromMinutes(2);
                         sftp.Connect();
+                        _logger.LogInformation($"Connected to SFTP server: {HOST}:{PORT}");
+                        
+                        var remotePath = WorkingTimeFolder + fileName;
+                        _logger.LogInformation($"Uploading to remote path: {remotePath}");
                         
                         using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                         {
-                            sftp.UploadFile(fileStream, WorkingTimeFolder + fileName, true, progress =>
+                            sftp.UploadFile(fileStream, remotePath, true, progress =>
                             {
                                 _logger.LogDebug($"Upload progress for {fileName}: {progress}%");
                             });
                         }
                         
+                        // Verify file exists before disconnecting
+                        var exists = sftp.Exists(remotePath);
+                        _logger.LogInformation($"File verification after upload: {(exists ? "EXISTS" : "NOT FOUND")}");
+                        
                         sftp.Disconnect();
                     }
                     
-                    // Verify upload by checking if file exists on remote server
+                    // Double check with separate verification
                     if (await VerifyFileUploaded(WorkingTimeFolder + fileName))
                     {
                         _logger.LogInformation($"Successfully uploaded WorkingTime file: {fileName} on attempt {attempt}");
@@ -104,23 +114,33 @@ namespace ToolCRM.Business
             {
                 try
                 {
+                    _logger.LogInformation($"Attempting to upload {fileName} to {CallReportFolder}");
+                    
                     using (var sftp = new SftpClient(HOST, PORT, USERNAME, PASSWORD))
                     {
                         sftp.ConnectionInfo.Timeout = TimeSpan.FromMinutes(2);
                         sftp.Connect();
+                        _logger.LogInformation($"Connected to SFTP server: {HOST}:{PORT}");
+                        
+                        var remotePath = CallReportFolder + fileName;
+                        _logger.LogInformation($"Uploading to remote path: {remotePath}");
                         
                         using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                         {
-                            sftp.UploadFile(fileStream, CallReportFolder + fileName, true, progress =>
+                            sftp.UploadFile(fileStream, remotePath, true, progress =>
                             {
                                 _logger.LogDebug($"Upload progress for {fileName}: {progress}%");
                             });
                         }
                         
+                        // Verify file exists before disconnecting
+                        var exists = sftp.Exists(remotePath);
+                        _logger.LogInformation($"File verification after upload: {(exists ? "EXISTS" : "NOT FOUND")}");
+                        
                         sftp.Disconnect();
                     }
                     
-                    // Verify upload by checking if file exists on remote server
+                    // Double check with separate verification
                     if (await VerifyFileUploaded(CallReportFolder + fileName))
                     {
                         _logger.LogInformation($"Successfully uploaded CallReport file: {fileName} on attempt {attempt}");
@@ -232,7 +252,10 @@ namespace ToolCRM.Business
                 _logger.LogInformation("Starting SFTP upload process...");
                 
                 await HandleFolderWorkingTime();
+                _logger.LogInformation("HandleFolderWorkingTime completed");
+                
                 await HandleFolderCDR();
+                _logger.LogInformation("HandleFolderCDR completed");
                 
                 _logger.LogInformation("SFTP upload process completed");
             }

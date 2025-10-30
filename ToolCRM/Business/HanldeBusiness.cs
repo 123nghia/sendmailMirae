@@ -14,10 +14,12 @@ namespace ToolCRM.Business
         public Sendmail sendmail;
         
         private readonly AppSettings _appSettings;
+        private readonly ILogger<ServiceSFCP> _logger;
         
         public HanldeBusiness(IOptions<AppSettings> appSettings, ILogger<ServiceSFCP> logger)
         {
             _appSettings = appSettings.Value;
+            _logger = logger;
             handleFileWorkingTime = new HandleFileWorkingTime(_appSettings);
             hanleFileExcel = new HanleFileExcel(_appSettings);
             serviceSFCP = new ServiceSFCP(_appSettings, logger);
@@ -62,10 +64,17 @@ namespace ToolCRM.Business
             {
                 return "Kiểm tra file báo cáo";
             }
+            
+            _logger.LogInformation("Starting to process files for upload...");
+            
             handleFileWorkingTime.OutputFileWorkingTime(dayReport, workingTimeReportFile);
+            _logger.LogInformation("WorkingTime file created successfully");
          
             hanleFileExcel.OutPutFile(dayReport, reprortCDRFileName);
+            _logger.LogInformation("CallReport file created successfully");
+            
             await serviceSFCP.UploadFolderToSFCP();
+            _logger.LogInformation("SFTP upload completed");
 
             return string.Empty;
         }
