@@ -171,8 +171,7 @@ namespace ToolCRM.Business
                     sftp.ConnectionInfo.Timeout = TimeSpan.FromSeconds(30);
                     sftp.Connect();
                     
-                    var file = sftp.Get(remotePath);
-                    var exists = file != null;
+                    var exists = sftp.Exists(remotePath);
                     
                     sftp.Disconnect();
                     
