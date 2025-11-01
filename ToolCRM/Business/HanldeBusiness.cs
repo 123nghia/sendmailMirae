@@ -3,6 +3,7 @@ using ToolCRM.Models;
 using ToolCRM.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace ToolCRM.Business
 {
@@ -73,7 +74,23 @@ namespace ToolCRM.Business
             hanleFileExcel.OutPutFile(dayReport, reprortCDRFileName);
             _logger.LogInformation("CallReport file created successfully");
             
-            await serviceSFCP.UploadFolderToSFCP();
+            List<string> uploadFailures;
+            try
+            {
+                uploadFailures = await serviceSFCP.UploadFolderToSFCP();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SFTP upload threw an unexpected exception");
+                return "SFTP upload failed: " + ex.Message;
+            }
+            if (uploadFailures.Count > 0)
+            {
+                var errorMessage = "SFTP upload failed for " + string.Join(", ", uploadFailures);
+                _logger.LogWarning(errorMessage);
+                return errorMessage;
+            }
+
             _logger.LogInformation("SFTP upload completed");
 
             return string.Empty;

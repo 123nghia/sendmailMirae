@@ -10,6 +10,13 @@ function submitForm() {
         alert("chưa chọn ngày báo cáo");
         return;
     }
+    var selectedDate = new Date(dayReport + "T00:00:00");
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (selectedDate >= today) {
+        alert("ngày làm báo cáo chỉ được chọn trong quá khứ và không vượt quá ngày hôm qua");
+        return;
+    }
     var fileTCInput = document.getElementById("fileFileTC");
     if (fileTCInput.files.length < 1) {
 

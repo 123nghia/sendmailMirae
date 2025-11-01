@@ -1,53 +1,144 @@
-﻿@model ToolCRM.Models.InputRequest
+@model ToolCRM.Models.InputRequest
 @{
     ViewData["Title"] = "Home Page";
+    var maxReportDate = DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");
 }
 
-
-
-<div style="text-align:center; display:none" id="showLoadding">
-    <h2>Đang xử lý, vui lòng chờ kết quả</h2>
-    <div class="spinner-grow text-primary" role="status">
-    </div>
-    <div class="spinner-grow text-secondary" role="status">
-    </div>
-    <div class="spinner-grow text-success" role="status">
-    </div>
-    <div class="spinner-grow text-danger" role="status">
-    </div>
-    <div class="spinner-grow text-warning" role="status">
-    </div>
-    <div class="spinner-grow text-info" role="status">
-    </div>
-    <div class="spinner-grow text-light" role="status">
-    </div>
-    <div class="spinner-grow text-dark" role="status">
+<div id="showLoadding" class="loading-overlay" style="display:none">
+    <div class="loading-card">
+        <span class="loading-icon">
+            <i class="fas fa-sync fa-spin"></i>
+        </span>
+        <h3>Đang đồng bộ báo cáo</h3>
+        <p>Hệ thống đang tải tệp lên SFTP. Vui lòng không đóng trình duyệt cho tới khi hoàn tất.</p>
+        <div class="loading-progress">
+            <span class="pulse"></span>
+        </div>
     </div>
 </div>
-<div class="container" id="contentdiv">
-    <h2>Hỗ trợ làm báo cáo </h2>
-    <form method="post" action="/" id="formSubmitReport" enctype="multipart/form-data">
-  
-        <div class="row">
-            <div class="mb-3">
-                <label for="exampleInputEmail1" class="form-label">Ngày làm báo cáo</label>
-                <input type="date" class="form-control" name="DayReport" id="dayReportTime" aria-describedby="emailHelp">
+
+<div class="report-page" id="contentdiv">
+    <section class="report-hero">
+        <div class="hero-brand">
+            <span class="hero-icon">
+                <i class="fas fa-file-upload"></i>
+            </span>
+            <div>
+                <h1>Hỗ trợ đồng bộ báo cáo</h1>
+                <p>Tự động chuẩn hóa và đẩy file Working Time &amp; CDR lên hệ thống SFTP trong vài bước đơn giản.</p>
             </div>
-            <div class="mb-3">
-                <label for="formFile" class="form-label">File nhân viên</label>
-                <input class="form-control" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" name="FileTC" id="fileFileTC">
-                <div class="form-text">Chọn File excel</div> <a href="/Tc.xlsx" download="dataTCTemplate.xlsx">File mẫu </a>
-            </div>
-            <div class="mb-3">
-                <label for="formFile" class="form-label">File báo cáo hàng ngày (CDR)</label>
-                <input class="form-control" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"  name="FileReport" id="fileFileReport">
-                <div class="form-text">Chọn File excel</div><a href="/call_report_20250211.xlsx" download="dataCDR.xlsx">File mẫu </a>
-            </div>
-            <button type="button" onclick="submitForm()" class="btn btn-primary">Đồng bộ báo cáo</button>
         </div>
-    </form>
-    <br />
-    <br />
-    
+        <div class="hero-meta">
+            <div>
+                <span class="meta-label">Thời gian hoạt động</span>
+                <span class="meta-value"><i class="fas fa-clock"></i> 24/7</span>
+            </div>
+            <div>
+                <span class="meta-label">Bộ phận phụ trách</span>
+                <span class="meta-value"><i class="fas fa-users"></i> SmartBank Operations</span>
+            </div>
+        </div>
+    </section>
+
+    <div class="report-layout">
+        <section class="report-card">
+            <header class="card-heading">
+                <div>
+                    <h2>Thông tin file báo cáo</h2>
+                    <p>Chọn ngày, tải lên file nhân viên và file báo cáo CDR theo đúng định dạng hệ thống.</p>
+                </div>
+                <div class="badge-pill">
+                    <i class="fas fa-shield-check"></i>
+                    Bảo mật SSL
+                </div>
+            </header>
+
+            <form method="post" action="/Home" id="formSubmitReport" enctype="multipart/form-data" class="report-form">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="dayReportTime">Ngày làm báo cáo <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-calendar-day"></i>
+                            <input type="date" name="DayReport" id="dayReportTime" placeholder="Chọn ngày" max="@maxReportDate" value='@(Model?.DayReport?.ToString("yyyy-MM-dd") ?? maxReportDate)' />
+                        </div>
+                        <span class="field-validation">@Html.ValidationMessageFor(m => m.DayReport)</span>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="fileFileTC">File nhân viên (Working Time) <span class="required">*</span></label>
+                        <div class="file-input">
+                            <i class="fas fa-user-check"></i>
+                            <input type="file" name="FileTC" id="fileFileTC"
+                                   accept=".csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
+                            <span class="file-placeholder">Kéo &amp; thả hoặc chọn file Excel</span>
+                        </div>
+                        <div class="field-meta">
+                            <span>Hỗ trợ: .xlsx, .csv</span>
+                            <a href="/Tc.xlsx" download="dataTCTemplate.xlsx"><i class="fas fa-download"></i> File mẫu</a>
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="fileFileReport">File báo cáo hằng ngày (CDR) <span class="required">*</span></label>
+                        <div class="file-input">
+                            <i class="fas fa-wave-square"></i>
+                            <input type="file" name="FileReport" id="fileFileReport"
+                                   accept=".csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
+                            <span class="file-placeholder">Kéo &amp; thả hoặc chọn file Excel</span>
+                        </div>
+                        <div class="field-meta">
+                            <span>Hỗ trợ: .xlsx, .csv</span>
+                            <a href="/call_report_20250211.xlsx" download="dataCDR.xlsx"><i class="fas fa-download"></i> File mẫu</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="submitForm()" class="btn btn-primary btn-gradient">
+                        <i class="fas fa-sync-alt"></i> Đồng bộ báo cáo
+                    </button>
+                    <span class="note"><i class="fas fa-info-circle"></i> Hệ thống sẽ tự động kiểm tra định dạng trước khi tải lên.</span>
+                </div>
+            </form>
+        </section>
+
+        <aside class="report-sidebar">
+            <div class="sidebar-card">
+                <h3>Quy trình chuẩn</h3>
+                <ol class="step-list">
+                    <li>
+                        <span class="step-index">01</span>
+                        <div>
+                            <h4>Chuẩn bị dữ liệu</h4>
+                            <p>Xuất file Working Time &amp; CDR theo mẫu chuẩn của phòng vận hành.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-index">02</span>
+                        <div>
+                            <h4>Tải file lên</h4>
+                            <p>Điền ngày báo cáo và chọn đúng tệp tương ứng. Hệ thống sẽ kiểm tra cấu trúc.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-index">03</span>
+                        <div>
+                            <h4>Đồng bộ SFTP</h4>
+                            <p>Sau khi tải lên thành công, file sẽ được gửi tới thư mục đích trên máy chủ SFTP.</p>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="sidebar-card contact-card">
+                <h3>Hỗ trợ nhanh</h3>
+                <p>Gặp sự cố? Liên hệ đội SmartBank Ops qua các kênh sau:</p>
+                <ul class="contact-list">
+                    <li><i class="fas fa-envelope"></i> support@smartbank.com.vn</li>
+                    <li><i class="fas fa-phone"></i> (+84) 1900 888 888</li>
+                    <li><i class="fas fa-comments"></i> Teams: #smartbank-ops</li>
+                </ul>
+            </div>
+        </aside>
     </div>
 </div>
